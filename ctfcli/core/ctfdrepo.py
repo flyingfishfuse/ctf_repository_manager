@@ -19,6 +19,7 @@ from ctfcli.utils.utils import validationdict
 ###############################################################################
 #
 ###############################################################################
+
 class SandboxyCTFdRepository():
     """
     Backend to CTF Repository
@@ -36,6 +37,12 @@ class SandboxyCTFdRepository():
         except Exception as e:
             errorlogger(f"[-] FAILED: Instancing a SandboxyCTFdLinkage(){e}")
 
+    def _addmasterlist(self, masterlist:Masterlist):
+        '''
+        Adds a masterlist file to self
+        '''
+        setattr(self,'masterlist',masterlist)
+        
     def _createrepo(self, allowedcategories)-> Repository:
         '''
         Performs all the actions necessary to create a repository
@@ -49,41 +56,39 @@ class SandboxyCTFdRepository():
         '''
         debuggreen("[+] Starting Repository Scan")
         dictofcategories = {}
-        #repocategoryfolders = os.listdir(os.path.abspath(self.repofolder))
+        # get subdirectories in repository, these are the category folders
+            #repocategoryfolders = os.listdir(os.path.abspath(self.repofolder))
         repocategoryfolders = getsubdirs(self.repofolder)
-        #debuggreen(f"[+] Categories: {[f'{folder}\n' for folder in repocategoryfolders]}")
+            #debuggreen(f"[+] Categories: {[f'{folder}\n' for folder in repocategoryfolders]}")
         # itterate over folders in challenge directory
         for category in repocategoryfolders:
             categorypath = Path(os.path.join(self.repofolder, category))
             # if its a repository category folder in aproved list
             if category.stem in allowedcategories:
                 # process the challenges in that category
-                newcategory = self._processcategory(categorypath)
+                debuggreen(f"[+] Found Category folder {categorypath.name}")
+                #create a new Category and assign name based on folder
+                newcategory = Category(categorypath.name,categorypath)   
+                #newcategory = self._processcategory(categorypath)
                 # this dict contains the entire repository now
                 dictofcategories[newcategory.name] = newcategory
+
+        for category in dictofcategories.copy():
+            processedcategory = self._processcategory(category)
         # assign all categories to repository class
         # using protoclass + dict expansion
         newrepo = Repository(**dictofcategories)
         # return this class to the upper level scope
         return newrepo
 
-    def _addmasterlist(self, masterlist:Masterlist):
-        '''
-        Adds a masterlist file to self
-        '''
-        setattr(self,'masterlist',masterlist)
-
-    def _processcategory(self,categorypath:Path)-> Category:
+    def _processcategory(self,category:Category)-> Category:
         '''
         Itterates over a Category folder to add challenges to the database
-        '''
-        debuggreen(f"[+] Found Category folder {categorypath.name}")
-        #create a new Category and assign name based on folder
-        newcategory = Category(categorypath.name,categorypath)        
+        '''     
         #get subfolder names in category directory
-        categoryfolder = getsubdirs(newcategory.location)
+        #categoryfolder = getsubdirs(newcategory.location)
         # itterate over the individual challenges
-        for challengefolder in categoryfolder:
+        for challengefolder in category.dirlisting:
             # each in its own folder, name not required
             challengefolderpath = Path(self.repofolder,categorypath.name, challengefolder)
             debuggreen(f"[+] Found folder {challengefolderpath.name}")
@@ -91,13 +96,17 @@ class SandboxyCTFdRepository():
             try:
                 # begin scanning and if necessary, file parsing
                 # to create new Challenge() or Deployment() class's from folder contents
-                newchallenge = self._validatefolder(challengefolderpath,
-                                                newcategory.name, 
-                                                validationdict = validationdict)
+                #newchallenge = self._validatefolder(challengefolderpath,
+                                                #newcategory.name, 
+                                                #validationdict = validationdict)
+                self._validatefolder(challengefolderpath,
+                                    #newcategory.name, 
+                                    validationdict = validationdict)
+
                 # load yaml and scan folder
                 yamlcontents = self._processfoldercontents(challengefolderpath)#,category)
                 # create CHallenge based off those
-                self._createchallenge(yamlcontents=yamlcontents)
+                newchallenge = self._createchallenge(yamlcontents=yamlcontents)
 
                 #if self._validatefolder(validationdict, "deployment"):
                 #    debuggreen("[+] Found Deployment Challenge")
@@ -135,7 +144,7 @@ class SandboxyCTFdRepository():
             errorlogger("[-] ERROR: Challenge Folder contents do not conform to specification!")
     '''
         
-    def _validatefolder(self,folderpath:Path, category:str,keywurd:str):#, validationdict:dict) -> Challenge:
+    def _validatefolder(self,folderpath:Path, keywurd:str):#, validationdict:dict) -> Challenge:
         """
         Compares the folder contents against a predefined list of items
         feed it a dict and keyword to select list to validate against
@@ -227,6 +236,11 @@ class SandboxyCTFdRepository():
             # lint the challenge
             #shitty hack to get thins flowing properly
             # when everything is modified finally this can get removed
+            # so far, the category folder has been the category name... but what if 
+            # they are just tossing the wrong challenge in the wrong category?
+            # here we replace the category name, fed to the function as the name of the folder
+            # the challenge was residing in
+            # with the category given in the challenge yaml
             #challengeyaml.update({"category": category})
             challengeyaml["category"] = category
             yamlcontents = linter.lintchallengeyaml(challengeyaml)

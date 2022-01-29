@@ -1,6 +1,7 @@
 
 from ctfcli.core.challenge import Challenge
 from ctfcli.utils.utils import errorlogger,redprint,yellowboldprint,greenprint
+from ctfcli.utils.utils import getsubdirs
 
 ###############################################################################
 #  CTFd CATEGORY: representation of folder in repository
@@ -20,7 +21,9 @@ class Category(): #folder
         self.name = category
         self.location = location
         self.tag = "!Category:"
-    
+        # prepopulate this field when instanced
+        self.dirlisting = self.listchallengefolders()
+        
     def __repr__(self):
         '''
         The way it looks when you print to screen via the following method
@@ -69,10 +72,17 @@ Installed Challenges : {numberofchallenges}
                                  will fit the form "Challenge_SHA256HASHSTRING"
         '''
         delattr(self,challengename)
-    
+
+    def listchallengefolders(self):
+        """
+        directory listing of every folder in the category folder
+        """
+        #get subfolder names in category directory
+        categoryfolder = getsubdirs(self.location)
+
     def listchallenges(self) -> list:
         '''
-        Lists all the challenges appended to this category
+        Lists all the challenges appended to this category, post init
         gives keys, you need to use vars(object).get(key)
         '''
         challengelist = []
