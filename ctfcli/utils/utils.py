@@ -83,8 +83,9 @@ criticallog  = lambda message: logger.critical(message)
                     #logger.error(f"[-] missing important item in challenge folder, skipping : missing {item}")
                 #    break
 
+#this is where everything is defined, the structure of the repo folders
 validationdict = {
-            "standard":["handout","solution","challenge", "README"],
+            "standard":["handout","solution","challenge.yaml", "README"],
             # if these exist, make a deployment instead
             "deployment": ["deployment","Dockerfile","metadata.yaml","README"]
     }

@@ -46,13 +46,13 @@ sys.path.insert(0, os.path.abspath('.'))
 PWD = os.path.realpath(".")
 #PWD_LIST = os.listdir(PWD)
 
-#where the script itself is located
-# ohh look a global
+# ohh look a global list
 global PROJECT_ROOT
 PROJECT_ROOT = Path(os.path.dirname(__file__))
 global CHALLENGEREPOROOT
 CHALLENGEREPOROOT=Path(PROJECT_ROOT,'/data/CTFd')
-
+global COMPOSEDIRECTORY
+COMPOSEDIRECTORY = Path(PROJECT_ROOT,'/data/composefiles')
 
 ###############################################################################
 

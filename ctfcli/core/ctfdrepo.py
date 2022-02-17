@@ -72,9 +72,12 @@ class SandboxyCTFdRepository():
                 #newcategory = self._processcategory(categorypath)
                 # this dict contains the entire repository now
                 dictofcategories[newcategory.name] = newcategory
-
-        for category in dictofcategories.copy():
-            processedcategory = self._processcategory(category)
+        # for each category folder in the repository folder
+        #for category in dictofcategories.copy():
+                # process through validation
+                processedcategory = self._processcategory(category)
+                
+                dictofcategories.update(processedcategory)
         # assign all categories to repository class
         # using protoclass + dict expansion
         newrepo = Repository(**dictofcategories)
@@ -90,104 +93,31 @@ class SandboxyCTFdRepository():
         # itterate over the individual challenges
         for challengefolder in category.dirlisting:
             # each in its own folder, name not required
-            challengefolderpath = Path(self.repofolder,categorypath.name, challengefolder)
+            challengefolderpath = Path(self.repofolder,category.name, challengefolder)
             debuggreen(f"[+] Found folder {challengefolderpath.name}")
             debugyellow(f'[+] {challengefolderpath}')
             try:
-                # begin scanning and if necessary, file parsing
-                # to create new Challenge() or Deployment() class's from folder contents
-                #newchallenge = self._validatefolder(challengefolderpath,
-                                                #newcategory.name, 
-                                                #validationdict = validationdict)
-                self._validatefolder(challengefolderpath,
-                                    #newcategory.name, 
-                                    validationdict = validationdict)
-
                 # load yaml and scan folder
-                yamlcontents = self._processfoldercontents(challengefolderpath)#,category)
+                folderscanresults = self._processfoldercontents(challengefolderpath)#,category)
                 # create CHallenge based off those
-                newchallenge = self._createchallenge(yamlcontents=yamlcontents)
-
-                #if self._validatefolder(validationdict, "deployment"):
-                #    debuggreen("[+] Found Deployment Challenge")
-                #    # load yaml and scan folder, passing category down
-                #    yamlcontents = self._processfoldercontents(challengefolderpath)#,category)
-                    # create deployment based off those
-                #    self._createdeployment(yamlcontents=yamlcontents)
+                newchallenge = self._createchallenge(folderscanresults)
 
                 #assign challenge to category
-                newcategory._addchallenge(newchallenge)
+                #newcategory._addchallenge(newchallenge)
+                category._addchallenge(newchallenge)
 
             except Exception:
                 errorlogger('[-] Error Creating Challenge!')
                 continue
-        return newcategory
-    
-    '''
-    def _scanfolder(self,folderpath:Path, category:str, validationdict:dict) -> Challenge:
-        """
-        scans the folder to branch to either depoloyment or standard challenge
+        return category
 
-        File definitions required for the challenges are used here
+    def _processdeploymentfolder(self):
         """
-        try:
-            # get directory listing of specified folder path
-            challengedirlist = os.listdir(os.path.normpath(folderpath))
-            #challengeitempath = lambda challengedata: Path(os.path.abspath(os.path.join(folderpath,challengedata)))
-            # if the folder validates as a standard challenge
-            validdata = self._validatefolder(challengedirlist, validationdict, "standard"):
-            if validdata:
-                debuggreen("[+] Found Standard Challenge")
-            else:
-                pass
-        except Exception:
-            errorlogger("[-] ERROR: Challenge Folder contents do not conform to specification!")
-    '''
-        
-    def _validatefolder(self,folderpath:Path, keywurd:str):#, validationdict:dict) -> Challenge:
-        """
-        Compares the folder contents against a predefined list of items
-        feed it a dict and keyword to select list to validate against
-        """
-        try:
-            # get directory listing of specified folder path
-            challengedirlist = os.listdir(os.path.normpath(folderpath))
-            #challengeitempath = lambda challengedata: Path(os.path.abspath(os.path.join(folderpath,challengedata)))
-            validationlist:list = validationdict.get(keywurd)
-            #make a truthyness placeholder
-            # false in the beginning, lack of information means "untrustworthy"
-            valid = False
-            # review items in directory
-            for item in challengedirlist:
-                # if its not in the provided list
-                if item not in validationlist:
-                    # throw a debug message and pass over the item, its probably 
-                    # required for the challenge
-                    debugyellow(f"[-] Found Extraneous item in challenge folder : {item} ")
-                    pass
-                # if its in the list
-                elif item in validationlist:
-                    # let the truthyness variable be set/remain as true
-                    debuggreen(f"[+] Found Valid Item {item}")
-                    valid = True
-                    # remove the item from the validation list
-                    validationlist.remove(item)
-            # if there is anything left in the validation list, 
-            # the files required for the challenge are not all there
-            validationlistlength = len(validationlist)
-            if validationlistlength > 0:
-                valid = False
-                errorlogger(f"[-] Missing {validationlistlength} required item/s, rejecting entry")
-                #debugred(f"[-] Missing {validationlistlength}required item/s, rejecting entry")
-                return valid
-            elif validationlistlength == 0:
-                debuggreen("[+] All Required files have been found in the specified folder")
-                return valid
-        except Exception:
-            errorlogger("[-] ERROR: Challenge Folder contents do not conform to specification!")
+        Processes and validates the contents of the deployment folder
 
+        """
         
-    def _processfoldercontents(folderpath:Path,category:str)-> dict:
+    def _processfoldercontents(self, folderpath:Path,category:str)-> dict:
         """
         Performs linting of challenge spec file and compresses the solution/handout folders
 
@@ -211,62 +141,162 @@ class SandboxyCTFdRepository():
         >>>    }
 
         """
+        # begin scanning and if necessary, file parsing
+        # to create new Challenge() or Deployment() class's from folder contents
+        #self._validatefolder(folderpath,validationdict = validationdict)
+        # keep this here to test changes to the core specification
+        # until I move all of that to its own core.spec file
+        if DEBUG == True:
+            #this is where everything is defined, the structure of the repo folders
+            validationdict = {
+                "standard" :   [
+                        "handout",
+                        "solution",
+                        "challenge.yaml",
+                        #"README"
+                        ],
+                # if these exist, make a deployment instead
+                "deployment": [
+                        #"handout",
+                        "solution",
+                        "deployment",
+                        #"Dockerfile",
+                        "challenge.yaml",
+                        #"README"
+                        ]
+            }
+        # get directory listing of folder
         challengedirlist = os.listdir(os.path.normpath(folderpath))
         # get path to challenge subitem
         kwargs = {}
-        #challenge contents definition for discerning between deployment 
-        # and non deployment challenge
-        try:
-            # itterate over the items in the directory
+        valid = False
+        # review items in directory
+        #"type" :["item","item","item"]
+        for challengetype in validationdict:
+            # grab validation info from dict
+            # ["item","item","item"]
+            validdatalist = validationdict.get(challengetype)
             for item in challengedirlist:
-            # get the paths
-                itempath = Path(os.path.abspath(os.path.join(folderpath,item)))
-                # assign paths to dict as {filename:path}
-                kwargs[str(itempath.stem).lower()] =  itempath
-            # pack up solution
-            solution = _processfoldertotarfile(folder = kwargs.pop('handout'), 
-                                               filename = 'solution.tar.gz')
-            # pack up handout
-            handout  = _processfoldertotarfile(folder = kwargs.pop('solution'), 
-                                               filename = 'handout.tar.gz')
-            # start the linter
-            linter = Linter()
-            # instance a Yaml class
-            challengeyaml = Yaml().loadyaml(kwargs.pop("challenge"))
-            # lint the challenge
-            #shitty hack to get thins flowing properly
-            # when everything is modified finally this can get removed
-            # so far, the category folder has been the category name... but what if 
-            # they are just tossing the wrong challenge in the wrong category?
-            # here we replace the category name, fed to the function as the name of the folder
-            # the challenge was residing in
-            # with the category given in the challenge yaml
-            #challengeyaml.update({"category": category})
-            challengeyaml["category"] = category
-            yamlcontents = linter.lintchallengeyaml(challengeyaml)
-            folderscanresults = {
-                "category": category,
-                "yaml":yamlcontents,
-                "folderdata" : {
-                    "handout":handout, 
-                    "solution": solution
-                }
-            }
-            #debugblue(f"[DEBUG] VAR folderscanresults:dict \n[DEBUG] {folderscanresults}")
-            return folderscanresults
-        except Exception:
-            errorlogger("[-] ERROR: _processfoldercontents() Encountered an Exception, Please check the log file")
+                # if its not in the provided list
+                if item not in validdatalist:
+                #if item not in validationlist:
+                    # throw a debug message and pass over the item, its probably 
+                    # required for the challenge
+                    debugyellow(f"[-] Found Extraneous item in challenge folder : {item} ")
+                    pass
+                # if its in the list
+                elif item in validdatalist:
+                #elif item in validationlist:
+                    # let the truthyness variable be set/remain as true
+                    debuggreen(f"[+] Found Valid Item {item}")
+                    valid = True
+                    # remove the item from the validation list
+                    validdatalist.remove(item)
+                    #validationlist.remove(item)
+            # if there is anything left in the validation list, 
+            # the files required for the challenge are not all there
+            validationlistlength = len(validdatalist)
+            if validationlistlength > 0:
+                valid = False
+                errorlogger(f"[-] Missing {validationlistlength} required item/s, {validdatalist}\n rejecting entry")
+                #debugred(f"[-] Missing {validationlistlength}required item/s, rejecting entry")
+                #return valid
+                raise LookupError
+            elif validationlistlength == 0:
+                debuggreen("[+] All Required files have been found in the specified folder")
+                #challenge contents definition for discerning between deployment 
+                # and non deployment challenge
+                try:
+                    # itterate over the items in the directory
+                    for item in challengedirlist:
+                    # get the paths
+                        itempath = Path(os.path.abspath(os.path.join(folderpath,item)))
+                        # assign paths to dict as {filename:path}
+                        kwargs[str(itempath.stem).lower()] =  itempath
+                    # do something different if the folder named 
+                    # "deployment" is present, indicating  this is a 
+                    # deployed challenge, 
+                    # yes its repeating code
+                    # yes there is a better way
+                # its a regular challenge
+                    if kwargs.get("deployment") is None:
+                        challengetype = "challenge"
+                        debuggreen("[+] Standard Challenge processing")
+                        # handout/solution is necessary
+                        # pack up solution
+                        solution = _processfoldertotarfile(folder = kwargs.pop('handout'), 
+                                                           filename = 'solution.tar.gz')
+                        # pack up handout   
+                        handout  = _processfoldertotarfile(folder = kwargs.pop('solution'), 
+                                                            filename = 'handout.tar.gz')
+                # if the deployment folder exists
+                    elif kwargs.get("deployment") is not None:
+                        challengetype = "deployment"
+                        debuggreen("[+] Deployment Challenge Processing")
+                        # handout/solution is not necessary
+                        if kwargs.get("solution") is not None:
+                            solution = _processfoldertotarfile(folder = kwargs.pop('handout'), 
+                                                               filename = 'solution.tar.gz')
+                        if kwargs.get("handout") is not None:
+                            handout  = _processfoldertotarfile(folder = kwargs.pop('solution'), 
+                                                               filename = 'handout.tar.gz')
+                    # start the linter
+                    linter = Linter()
+                    # pick out the challenge yaml
+                    # instance a Yaml class
+                    challengeyaml = Yaml().loadyaml(kwargs.pop("challenge"))
+                    # lint the challenge
+                    #shitty hack to get thins flowing properly
+                    # when everything is modified finally this can get removed
+                    # so far, the category folder has been the category name... but what if 
+                    # they are just tossing the wrong challenge in the wrong category?
+                    # here we replace the category name, fed to the function as the name of the folder
+                    # the challenge was residing in
+                    # with the category given in the challenge yaml
+                    #challengeyaml.update({"category": category})
+                    challengeyaml["category"] = category
+                    yamlcontents = linter.lintchallengeyaml(challengeyaml)
+                    folderscanresults = {
+                        "category": category,
+                        "type":challengetype,
+                        "yaml":yamlcontents,
+                        "folderdata" : {
+                            "deployment": "",
+                            "service":"",
+                            "handout":handout, 
+                            "solution": solution
+                        }
+                    }
+                    #debugblue(f"[DEBUG] VAR folderscanresults:dict \n[DEBUG] {folderscanresults}")
+                    return folderscanresults
+                except Exception:
+                    errorlogger("[-] ERROR: _processfoldercontents() Encountered an Exception, Please check the log file")
 
     def _createdeployment(self, folderdata:dict, yamlcontents:dict) -> Challenge:
         """
         Creates a DeploymentChallenge() from a challenge folder containing a dockerfile 
         or a kubernetes spec
+        
+        Uses the following json container schema
+        folderscanresults = {
+                "category": category,
+                "type":challengetype,
+                "yaml":yamlcontents,
+                "folderdata" : {
+                    "deployment": "",
+                    "service":"",
+                    "handout":handout, 
+                    "solution": solution
+                }
+            }
         """
         # create the challenge in the repository
         newdeployment = Deployment(
                 category = folderdata.get("category"),
                 handout=  folderdata.get("folderdata")["handout"],
                 solution=  folderdata.get("folderdata")["solution"],
+                deployment = folderdata.get("folderdata")["deployment"],
+                service = folderdata.get("folderdata")["service"],
                 readme = folderdata.get("folderdata")['README']
                 )
             #load the challenge yaml dict into the class
@@ -275,12 +305,12 @@ class SandboxyCTFdRepository():
 
     def _createchallenge(self, folderdata:dict) -> Challenge:
         '''
-        Create a njew Challenge() class based on the results of the folder scan
+        Create a new Challenge() class based on the results of the folder scan
         if the folder scan was successful
         Args:
             folderscanresults (dict): representation of folder data
         '''
-            # create the challenge in the repository
+        # create the challenge in the repository
         newchallenge = Challenge(
                 category = folderdata.get("category"),
                 handout=  folderdata.get("folderdata")["handout"],

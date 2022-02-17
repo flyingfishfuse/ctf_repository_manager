@@ -1,3 +1,4 @@
+from pathlib import Path
 
 from ctfcli.core.challenge import Challenge
 from ctfcli.utils.utils import errorlogger,redprint,yellowboldprint,greenprint
@@ -17,8 +18,10 @@ class Category(): #folder
         represents a challenge.yaml
         name: thing
     """
-    def __init__(self,category,location):
+    def __init__(self,category,location:Path):
+        # name of the folder, as resides on disk
         self.name = category
+        # location of the folder on disk
         self.location = location
         self.tag = "!Category:"
         # prepopulate this field when instanced

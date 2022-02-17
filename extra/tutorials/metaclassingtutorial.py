@@ -76,7 +76,7 @@ message = "BORK BORK I POOP ON U"
 qwer.dog(ClassA,message=message)
 
 # what if you want a better dog factory?
-class ProtoClass(Dog):
+class ProtoClass(Prototype1):
     '''
     Prototype base class , set name with "name = str".
     '''

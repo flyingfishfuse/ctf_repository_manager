@@ -522,6 +522,11 @@ class Disassembler():
 #        elif choice == "python":
 #            PythonDisassembler(file_input=filename)
 
+
+# now its YOUR turn! 
+
+# make this class and only use python built in methods!
+
 #class PythonDisassembler():
 #    ''' pure python solution to getting binary as hex'''
 #

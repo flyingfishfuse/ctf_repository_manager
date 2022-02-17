@@ -21,8 +21,7 @@ This tool
 
         you should provide token and url when running the tool, it will store 
         token only for a limited time. This is intentional and will not be changed
-        This tool is capable of getting its own tokens given an administrative username
-        and password
+        This tool is capable of getting its own tokens given an administrative username and password
 
         for SINGLE operations, with NO authentication persistance:
         

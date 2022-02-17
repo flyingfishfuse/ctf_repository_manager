@@ -26,16 +26,16 @@ USER admin
 # VOLUME /var/log /var/db
 COPY /vpn /data
 # begin copying data
-COPY ./certs /usr/share/inetsim/data/certs/
-COPY ./ftp /usr/share/inetsim/data/ftp/
+#COPY ./certs /usr/share/inetsim/data/certs/
+#COPY ./ftp /usr/share/inetsim/data/ftp/
 # /usr/share/inetsim/data/pop3/
 # /usr/share/inetsim/data/smtp/
 # /usr/share/inetsim/data/finger/
 # /usr/share/inetsim/data/http/
 # /usr/share/inetsim/data/quotd/
 # /usr/share/inetsim/data/tftp/
-COPY ./inetsim.conf /etc/inetsim/inetsim.conf
-COPY ./data /usr/share/inetsim/data/
+#COPY ./inetsim.conf /etc/inetsim/inetsim.conf
+#COPY ./data /usr/share/inetsim/data/
 
 # expose necessary ports
 EXPOSE 80 443 3306

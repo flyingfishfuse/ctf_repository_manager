@@ -1,5 +1,9 @@
 from ctfcli.utils.utils import errorlogger,greenprint,redprint,yellowboldprint
 from ctfcli.core.yamlstuff import Yaml,KubernetesYaml
+
+from pathlib import Path
+from hashlib import sha1
+
 # deployment managment
 from kubernetes import client, config, watch
 import docker,yaml
@@ -27,14 +31,21 @@ class Deployment():
             category,
             handout,
             solution,
+            deployment:Path,
+            service:Path,
             readme
             ):
-        self.tag = "!Challenge:"
+        self.tag = "!Deployment:"
         self.readme = readme
         self.category = category
         #self.deployment         = deployment
         self.solution = solution
         self.handout  = handout
+         
+         # here, we deviate from the challenge class and include
+         # deployment and service yaml files
+        self.deployment = deployment
+        self.service = service
 
         # this is set after syncing by the ctfd server, it increments by one per
         # challenge upload so it's predictable
@@ -71,11 +82,33 @@ class Deployment():
         for each in kwargs:
             setattr(self,each,kwargs.get(each))
         # the new classname is defined by the name tag in the Yaml now
-        self.internalname = "Challenge_" + str(sha1(self.name.encode("ascii")).hexdigest())
+        self.internalname = "Deployment_" + str(sha1(self.name.encode("ascii")).hexdigest())
         self.__name = self.internalname
         self.__qualname__ = self.internalname
         yellowboldprint(f'[+] Internal name: {self.internalname}')
 
+class KubernetesManagment():
+    def __init__(self):
+        """
+        
+        """
+            # Configs can be set in Configuration class directly or using helper
+    # utility. If no argument provided, the config will be loaded from
+    # default location.
+    config.load_kube_config()
+
+    def _init_nginx(self,path:Path):
+        """
+        from docs/examples
+
+        The nginx yaml resides in $PROJECTROOT/containers/nginx
+        """
+        with open(path.join(path.dirname(__file__), "nginx-deployment.yaml")) as f:
+            dep = yaml.safe_load(f)
+            k8s_apps_v1 = client.AppsV1Api()
+            resp = k8s_apps_v1.create_namespaced_deployment(
+                body=dep, namespace="default")
+            print("Deployment created. status='%s'" % resp.metadata.name)
 
 class DockerManagment():
     def __init__(self):
