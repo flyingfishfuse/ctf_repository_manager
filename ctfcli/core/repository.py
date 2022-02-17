@@ -4,7 +4,7 @@ from ctfcli.core.category import Category
 from ctfcli.core.challenge import Challenge
 
 ###############################################################################
-#  CTFd Repository
+#  CTF Repository
 ###############################################################################
 
 class Repo():

@@ -146,8 +146,8 @@ class SandBoxyCTFdLinkage():
                 ):
         '''
         Syncs the masterlist.yaml with server, This "uploads" the challenges.
-        Use this after init, unless you are using the default set, 
-        then simply use this
+        Use this AFTER init
+        UNLESS you are using the default set, then simply use this
 
         To sync repository contents to CTFd Server
         >>> host@server$> python ./ctfcli/ ctfcli syncrepository ---ctfdurl=<URL>

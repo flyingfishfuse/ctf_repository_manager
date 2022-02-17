@@ -25,7 +25,7 @@ class SandboxyCTFdRepository():
     Backend to CTF Repository
     """
     def __init__(self,
-                repositoryfolder:Path ,
+                repositoryfolder:Path,
                 masterlistlocation
                 ):
         self.masterlistlocation = masterlistlocation
@@ -73,11 +73,10 @@ class SandboxyCTFdRepository():
                 # this dict contains the entire repository now
                 dictofcategories[newcategory.name] = newcategory
         # for each category folder in the repository folder
-        #for category in dictofcategories.copy():
-                # process through validation
-                processedcategory = self._processcategory(category)
-                
-                dictofcategories.update(processedcategory)
+        for category in dictofcategories.copy():
+            # process through validation
+            processedcategory = self._processcategory(category)
+            dictofcategories.update(processedcategory)
         # assign all categories to repository class
         # using protoclass + dict expansion
         newrepo = Repository(**dictofcategories)
@@ -174,7 +173,6 @@ class SandboxyCTFdRepository():
         #"type" :["item","item","item"]
         for challengetype in validationdict:
             # grab validation info from dict
-            # ["item","item","item"]
             validdatalist = validationdict.get(challengetype)
             for item in challengedirlist:
                 # if its not in the provided list
@@ -233,13 +231,26 @@ class SandboxyCTFdRepository():
                     elif kwargs.get("deployment") is not None:
                         challengetype = "deployment"
                         debuggreen("[+] Deployment Challenge Processing")
-                        # handout/solution is not necessary
+                        # handout is not necessary
                         if kwargs.get("solution") is not None:
-                            solution = _processfoldertotarfile(folder = kwargs.pop('handout'), 
+                            debuggreen("[+] Deployment solution folder compressing to tarfile")
+                            try:
+                                solution = _processfoldertotarfile(folder = kwargs.pop('handout'), 
                                                                filename = 'solution.tar.gz')
+                            except:
+                                errorlogger("[-] Failed to compress solution folder to tarfile")
+                                raise Exception
+                        else:
+                            errorlogger("[-] No solution present for deployed challenge; rejecting\
+                                \n [-] Please run the command for installing a specific challenge \n\
+                                and provide the path to the challenge folder")
+                            raise Exception
                         if kwargs.get("handout") is not None:
+                            debuggreen("[+] Deployment handout folder compressing to tarfile")
                             handout  = _processfoldertotarfile(folder = kwargs.pop('solution'), 
                                                                filename = 'handout.tar.gz')
+                        else:
+                            yellowboldprint("[?] No handout material given in deployed challenge, presuming blackbox testing?")
                     # start the linter
                     linter = Linter()
                     # pick out the challenge yaml
@@ -255,7 +266,11 @@ class SandboxyCTFdRepository():
                     # with the category given in the challenge yaml
                     #challengeyaml.update({"category": category})
                     challengeyaml["category"] = category
-                    yamlcontents = linter.lintchallengeyaml(challengeyaml)
+                    try:
+                        yamlcontents = linter.lintchallengeyaml(challengeyaml)
+                    except Exception:
+                        errorlogger("[-] Failure Linting Challenge yaml files")
+                        pass
                     folderscanresults = {
                         "category": category,
                         "type":challengetype,
