@@ -98,7 +98,7 @@ class SandboxyCTFdRepository():
             try:
                 # load yaml and scan folder
                 folderscanresults = self._processfoldercontents(challengefolderpath)#,category)
-                # create CHallenge based off those
+                # create Challenge based off those
                 newchallenge = self._createchallenge(folderscanresults)
 
                 #assign challenge to category
@@ -110,12 +110,6 @@ class SandboxyCTFdRepository():
                 continue
         return category
 
-    def _processdeploymentfolder(self):
-        """
-        Processes and validates the contents of the deployment folder
-
-        """
-        
     def _processfoldercontents(self, folderpath:Path,category:str)-> dict:
         """
         Performs linting of challenge spec file and compresses the solution/handout folders
@@ -140,6 +134,10 @@ class SandboxyCTFdRepository():
         >>>    }
 
         """
+
+        #######################################################################
+        # VALIDATION OF INDIVIDUAL CHALLENGES
+        #######################################################################
         # begin scanning and if necessary, file parsing
         # to create new Challenge() or Deployment() class's from folder contents
         #self._validatefolder(folderpath,validationdict = validationdict)
@@ -169,18 +167,18 @@ class SandboxyCTFdRepository():
         # get path to challenge subitem
         kwargs = {}
         valid = False
-        # review items in directory
-        #"type" :["item","item","item"]
+        # compare items in directory to validation dict
         for challengetype in validationdict:
-            # grab validation info from dict
             validdatalist = validationdict.get(challengetype)
             for item in challengedirlist:
                 # if its not in the provided list
                 if item not in validdatalist:
-                #if item not in validationlist:
                     # throw a debug message and pass over the item, its probably 
-                    # required for the challenge
-                    debugyellow(f"[-] Found Extraneous item in challenge folder : {item} ")
+                    # required for the challenge but isnt in the spec
+                    # the spec dictates nothing should be there
+                    debugyellow(f"[-] Found Extraneous item in challenge folder : {item} \n\
+                        [-] This does not conform to specification for a challenge folder and in \n\
+                        [-] future versions will raise an error and the folder will not be processed")
                     pass
                 # if its in the list
                 elif item in validdatalist:
@@ -197,11 +195,12 @@ class SandboxyCTFdRepository():
             if validationlistlength > 0:
                 valid = False
                 errorlogger(f"[-] Missing {validationlistlength} required item/s, {validdatalist}\n rejecting entry")
-                #debugred(f"[-] Missing {validationlistlength}required item/s, rejecting entry")
-                #return valid
                 raise LookupError
             elif validationlistlength == 0:
                 debuggreen("[+] All Required files have been found in the specified folder")
+        #######################################################################
+        # POST VALIDATION FOLDER PROCESSING
+        #######################################################################
                 #challenge contents definition for discerning between deployment 
                 # and non deployment challenge
                 try:
