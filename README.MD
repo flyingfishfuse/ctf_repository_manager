@@ -53,7 +53,41 @@
                 soution folder
                     solution file/s
 
+# kubernetes config
 
+    kubernetes config information is loaded from the shell environment with the following code:
+
+    ```python
+    kube_config.load_kube_config(
+        config_file=os.environ.get("KUBECONFIG", KUBE_CONFIG_PATH),
+        context=os.environ.get("KUBECONTEXT"),
+    )
+    ```
+    to change the directory you must change the environment variable
+    
+    See here: https://github.com/kubernetes-incubator/client-python/blob/436351b027df2673869ee00e0ff5589e6b3e2b7d/kubernetes/config/kube_config.py#L283
+
+    config.load_kube_config(context='some context')
+
+    If you are not familiar with Kubernetes contexts, Kubernetes stores your configuration under ~/.kube/config (default location). In it you will find context definition for every cluster you may have access to. A field called current-context defines your current context.
+
+    You can issue the following commands:
+    
+    kubectl config current-context to see the current context
+    
+    kubectl config view to view all the configuration
+
+    The KUBECONFIG environment variable holds a list of kubeconfig files. 
+    For Linux and Mac, the list is colon-delimited. 
+    For Windows, the list is semicolon-delimited. 
+
+    The KUBECONFIG environment variable is not required. 
+    If the KUBECONFIG environment variable doesn't exist, 
+    kubectl uses the default kubeconfig file, $HOME/.kube/config.
+
+    If the KUBECONFIG environment variable does exist, 
+    kubectl uses an effective configuration that is the result of 
+    merging the files listed in the KUBECONFIG environment variable.
 # PROGRESS
 
         ctfcli almost completely rewritten, it uploads challenges, and creates a 

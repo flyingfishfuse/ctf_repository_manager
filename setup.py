@@ -16,7 +16,7 @@ def read(fname):
 
 
 setup(
-    name="CTFCLI",
+    name="CTF sandbox",
     version="wat",
     author="MRHAI",
     author_email="MRHAI@HAX.NET",

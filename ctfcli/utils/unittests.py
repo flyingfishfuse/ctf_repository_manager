@@ -5,17 +5,35 @@
 
 import doctest
 import unittest
-
+import yaml
+import __main__
 from random import randint
-
+import os,sys
+sys.path.insert(0, os.path.abspath('.'))
+import ctfcli.utils.utils
+import ctfcli.core.ctfdrepo
+import ctfcli.core.apisession
+import ctfcli.ClassConstructor
+import ctfcli
+import ctfcli.linkage
+import __main__
+import os,sys
+from pathlib import Path
+from ctfcli.core.masterlist import Masterlist
+from ctfcli.core.repository import Repository
+from ctfcli.core.ctfdrepo import SandboxyCTFdRepository
+from ctfcli.core.apisession import APIHandler
+from ctfcli.core.gitrepo import SandboxyGitRepository
+from ctfcli.utils.utils import redprint,greenprint, errorlogger
+from ctfcli.utils.config import Config
 
 # Random order for tests runs. (Original is: -1 if x<y, 0 if x==y, 1 if x>y).
 unittest.TestLoader.sortTestMethodsUsing = lambda _, x, y: randint(-1, 1)
 
 
 def setUpModule():
-    pass
-
+    """
+    """
 
 def tearDownModule():
     pass
@@ -44,6 +62,7 @@ class TestCode(unittest.TestCase):
         # get the paths
         self.testsubjectpaths = [getpath(pathything) for pathything in self.testsubjects]
         
+        
     def loadyamlfiles(self,pathoffile:Path):
         """
         feeds Yaml().loadyaml()
@@ -52,7 +71,19 @@ class TestCode(unittest.TestCase):
         # check if its even a dict, who knows right?
         self.assertEqual(dict,dictofyaml)
 
+    def test_toplevel(self):
+        """
+        
+        """
+        self._ctfdops = SandboxyCTFdRepository(self.repofolder, self.masterlistlocation)
 
+    def test_masterlist(self):
+        """
+        
+        """
+        masterlist = Masterlist()
+        newrepo = Repository(**dictofcategories)
+        masterlist._writenewmasterlist(self.masterlistlocation, newrepo,filemode="w")
     # functions to run as tests 
     # MUST be prepended with the string 
     # TEST

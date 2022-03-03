@@ -1,6 +1,7 @@
-from ctfcli.utils.utils import errorlogger,greenprint,redprint,yellowboldprint
+from ctfcli.utils.utils import infolog,errorlogger,greenprint,redprint,yellowboldprint
 from ctfcli.core.yamlstuff import Yaml,KubernetesYaml
 
+import os
 from pathlib import Path
 from hashlib import sha1
 
@@ -38,7 +39,6 @@ class Deployment():
         self.tag = "!Deployment:"
         self.readme = readme
         self.category = category
-        #self.deployment         = deployment
         self.solution = solution
         self.handout  = handout
          
@@ -87,15 +87,111 @@ class Deployment():
         self.__qualname__ = self.internalname
         yellowboldprint(f'[+] Internal name: {self.internalname}')
 
+class KubernetesConfig(client.Configuration):
+    """
+    Wraper for kubernetes.client.configuration
+        By default, kubectl looks for a file named config 
+        in the $HOME/.kube directory. You can specify other 
+        kubeconfig files by setting the KUBECONFIG 
+        environment variable
+    """
+    def __init__(self,kubeconfigpath:Path):
+        """
+        currently in version 1.5, we set the KUBECONFIG environmment variable 
+        in the top level file __main__.py in the root project directory
+
+        if it isnt set, the module is being used in standalone mode and must be set
+        manually by providing a dict to kubecopnfigpath
+
+        >>>    {
+        >>>        KUBECONFIG  : ""
+        >>>        context     : ""
+        >>>    }
+
+        Args:
+            kubeconfigpath (Path): Path to kubeconfig folder
+        """
+        self.kubeconfigpath = Path
+        if "KUBECONFIG" in os.environ():
+            self.kubeconfigpath = os.environ.get("KUBECONFIG")
+            infolog(f"[+] KUBECONFIG environment variable set as \n {self.kubeconfigpath}")
+        elif "KUBECONFIG" not in os.environ():
+            self.setkubernetesenvironment(kubeconfigpath)
+            infolog(f"[?] KUBECONFIG environment variable is not set")
+            infolog(f"[+] KUBECONFIG environment variable set as \n {self.kubeconfigpath}")
+ 
+    def setkubernetesenvironment(self,configdict:dict,useenv = True):
+        """
+        sets kubernetes environment
+        if useenv is set to True, uses system environment variables
+        for setting config, otherwise
+        if set to false, uses provided dict
+            {
+                KUBECONFIG  : ""
+                context     : ""
+            }
+        """
+        if useenv:
+            config_file = os.environ.get("KUBECONFIG", KUBE_CONFIG_PATH),
+            context = os.environ.get("KUBECONTEXT")
+        elif not useenv:
+            config_file = configdict.get("KUBECONFIG")
+            context = configdict.get("context")
+
+        self.load_kube_config(
+            config_file,
+            context,
+        )
+
+    def setkubeconnection(self,
+                      authtoken = "YOUR_TOKEN",
+                      authorization = "Bearer",
+                      host = "http://192.168.1.1:8080"):
+        """
+        """
+
+        # Defining host is optional and default to http://localhost
+        #configuration.host = "http://localhost"
+
+        self.host = host
+        self.api_key_prefix['authorization'] = authorization
+        self.api_key['authorization'] = authtoken
+        v1 = client.CoreV1Api()
+
 class KubernetesManagment():
     def __init__(self):
         """
         
         """
-            # Configs can be set in Configuration class directly or using helper
-    # utility. If no argument provided, the config will be loaded from
-    # default location.
-    config.load_kube_config()
+        # Configs can be set in Configuration class directly or using helper
+        # utility. If no argument provided, the config will be loaded from
+        # default location.
+        config.load_kube_config()
+    
+    def get_k8s_nodes(exclude_node_label_key=app_config["EXCLUDE_NODE_LABEL_KEY"]):
+        """
+        Returns a list of kubernetes nodes
+        """
+
+        try:
+            config.load_incluster_config()
+        except config.ConfigException:
+            try:
+                config.load_kube_config()
+            except config.ConfigException:
+                raise Exception("Could not configure kubernetes python client")
+
+        k8s_api = client.CoreV1Api()
+        infolog("Getting k8s nodes...")
+        response = k8s_api.list_node()
+        if exclude_node_label_key is not None:
+            nodes = []
+            for node in response.items:
+                if exclude_node_label_key not in node.metadata.labels:
+                    nodes.append(node)
+            response.items = nodes
+        infolog.info("Current k8s node count is {}".format(len(response.items)))
+        return response.items 
 
     def _init_nginx(self,path:Path):
         """
