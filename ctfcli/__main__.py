@@ -2,19 +2,14 @@ import os,sys,fire
 sys.path.insert(0, os.path.abspath('.'))
 #from ctfcli.utils.config import Config
 from pathlib import Path
+
+from ctfcli.utils.utils import DEBUG
 from ctfcli.utils.utils import errorlogger, yellowboldprint,greenprint,redprint
+
 from ctfcli.utils.config import Config
 from ctfcli.linkage import SandBoxyCTFdLinkage
 from ctfcli.core.gitrepo import SandboxyGitRepository
-#import ctfcli.utils.utils
-#import ctfcli.core.ctfdrepo
-#import ctfcli.core.apisession
-#import ctfcli.ClassConstructor
-#import ctfcli
-#import ctfcli.linkage
 
-###############################################################################
-from ctfcli.utils.utils import DEBUG
 ###############################################################################
 class Ctfcli():
     '''
@@ -89,6 +84,15 @@ class Ctfcli():
     def __init__(self):
         # modify the structure of the program here by reassigning classes
 
+		# FUTURE DEVELOPMENTS
+        # we import theswe if running in submodule mode
+		self.important_env_list = [
+			"PROJECT_ROOT",
+			"CHALLENGEREPOROOT",
+ 			"COMPOSEDIRECTORY",
+ 			"KUBECONFIGPATH",
+		]
+
         # this step checks for the challenges folder and other required things
         # will throw exception and EXIT if requirements are not met
         self._setenv()
@@ -97,12 +101,13 @@ class Ctfcli():
         self.config = Config(self.configfile)
         # create empty Repository() Object
         # requires location of challenges folder
-        ctfdrepo = SandBoxyCTFdLinkage(self._challengesfolder, self.masterlist)        # load config file
-        ctfdrepo._initconfig(self.config)
+        self.ctfdrepo = SandBoxyCTFdLinkage(self._challengesfolder, 
+                                            self.masterlist)
+        # load config file
+        self.ctfdrepo._initconfig(self.config)
         # challenge templates, change this to use your own with a randomizer
         self.TEMPLATESDIR = Path(self._toolfolder , "ctfcli", "templates")
 
-        self.ctfdrepo = ctfdrepo
         # create git repository
         try:
             # we do this last so we can add all the created files to the git repo        
@@ -112,6 +117,21 @@ class Ctfcli():
         except Exception:
             errorlogger("[-] Git Repository Creation Failed, check the logfile")
 
+	def _getenv(self):
+		'''
+		Retrieves neceessary env vars if running in submodule mode
+		all variables should be a Path to a location nearby
+		'''
+		if DEBUG == True:
+			debugyellow("Loading the following variables from the shell environment")
+		for var_name in self.important_env_list:
+			if DEBUG == True:
+				debugblue(var_name)
+		for each in self.important_env_list:
+			if DEBUG == True:
+				debugyellow("setting  env")
+				debugyellow(f"SETTING {each} as {os.getenv(each)}")
+			setattr(self,each, Path(os.getenv(each)))
 
     def _setenv(self):
         """
@@ -153,10 +173,10 @@ class Ctfcli():
             try:
                 # check if alongside challenges folder,
                 # i.e. individual tool usage
-                debuggreen("finding parent directory")
-                onelevelup = self._toolfolder.parent
-                oneleveluplistdir = os.listdir(onelevelup)
-                debuggreen("looking for challenges folder")
+                #debuggreen("finding parent directory")
+                #onelevelup = self._toolfolder.parent
+                #oneleveluplistdir = os.listdir(onelevelup)
+                #debuggreen("looking for challenges folder")
                 # found an item named "challenge"
                 if ('challenges' in oneleveluplistdir):
                     #is it a directory?
@@ -183,13 +203,79 @@ class Ctfcli():
             self._reporoot = Path(PROJECT_ROOT,"data","CTFd")
 
         os.environ["REPOROOT"] = str(self._reporoot)
+
+        set_locations()
         self._challengesfolder = Path(self._reporoot, "challenges")
-        self.masterlist = Path(self._reporoot, "masterlist.yaml")
+        #self.masterlist = Path(self._reporoot, "masterlist.yaml")
         self.configfile = Path(PROJECT_ROOT, "config.cfg")
 
         yellowboldprint(f'[+] Repository root ENV variable is {os.getenv("REPOROOT")}')
         yellowboldprint(f'[+] Challenge root is {self._challengesfolder}')
         # this code is inactive currently
+
+    def set_locations():
+        '''
+        Sets variables with the locations of the following items:
+        masterlist.yaml
+        challenges directory
+        config folder
+        '''
+        debuggreen("Setting locations of all important items")
+	#################################################################
+	# Setting location of challenges folder
+	#################################################################
+			# set var to indicate folder hierarchy
+			onelevelup = self._toolfolder.parent
+            debugyellow(f" one folder up : {onelevelup}")
+			# if a folder named challenges is in the directory next to this one
+            greenprint("[+] Looking for challenges folder")
+			for item in os.listdir(onelevelup):
+				debugyellow(f"itterating - directory listing item: {item}")
+				if os.path.isdir(item) and item == "challenges":
+					yellowboldprint("[+] Challenge Folder Found alongside tool folder, presuming to be repository location")
+					# set var to challenge folder location
+					self._challengesfolder = os.path.join(onelevelup, "challenges")
+					# set var to repository root
+					self._reporoot = onelevelup
+					debuggreen(f"challenges folder at {self._challengesfolder}")
+					debuggreen(f"repository root folder at {self._reporoot}")
+					break
+				# not the droid/folder we are looking for
+				elif (os.path.isdir(item) and item != "challenges"):
+					continue
+				# not even a droid/folder
+				elif not os.path.isdir(item):
+					continue
+			# folder one level up is empty?
+			else:
+				yellowboldprint("[!] Challenge folder not found Alongside tool folder, Exiting program!")
+				raise Exception
+		except Exception:
+			errorlogger("[-] Error, cannot find repository! ")
+	#################################################################
+	# Setting location of masterlist
+	#################################################################
+		try:
+			# location of the all important masterlist
+			# # ~/meeplabben/data/masterlist.yaml
+			self.masterlist = Path(self._reporoot, "masterlist.yaml")
+			yellowboldprint(f'[+] Masterlist is expected to be at {self.masterlist}')
+		except Exception:
+			errorlogger("[-] failed to set masterlist location")
+	#################################################################
+	# Setting location of config file
+	#################################################################
+		try:	
+			# location of the config file
+			# ~/meeplabben/config.cfg
+			self.configfile = Path(self._reporoot, "config.cfg")
+			yellowboldprint(f'[+] Config File is expected to be at {self.configfile}')
+
+			# bring in config functions
+			self.config = Config(self.configfile)
+			self.set_config()
+		except Exception:
+			errorlogger("[-] Failed to set location of config file")
 
 def main():
    fire.Fire(Ctfcli)
