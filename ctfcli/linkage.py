@@ -35,6 +35,7 @@ class SandBoxyCTFdLinkage():
         #self.config = configparser.ConfigParser
         #self.config = Config(configfilelocation)
 
+# This is an INTERNAL function
     def _checkmasterlist(self):
         """
         checks for existance and integrity of master list and loads it into self
@@ -53,7 +54,7 @@ class SandBoxyCTFdLinkage():
         except Exception:
             errorlogger("[-] Masterlist not located! Run 'ctfcli init' first!")
             return False
-    
+   
     def _initconfig(self, configparser:Config):
         """
         Sets Config to self
@@ -80,7 +81,8 @@ class SandBoxyCTFdLinkage():
             masterlist._writenewmasterlist(self.masterlistlocation, newrepo,filemode="w")
         except Exception:
             errorlogger("[-] Failed to Update Masterlist :")
-            
+
+# This is a USER function
     def init(self):
         """
         >>> host@server$> python ./ctfcli/ ctfcli init

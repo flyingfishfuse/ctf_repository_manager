@@ -6,6 +6,13 @@ from ctfcli.utils.utils import errorlogger, yellowboldprint,greenprint,redprint
 from ctfcli.utils.config import Config
 from ctfcli.linkage import SandBoxyCTFdLinkage
 from ctfcli.core.gitrepo import SandboxyGitRepository
+#import ctfcli.utils.utils
+#import ctfcli.core.ctfdrepo
+#import ctfcli.core.apisession
+#import ctfcli.ClassConstructor
+#import ctfcli
+#import ctfcli.linkage
+
 ###############################################################################
 from ctfcli.utils.utils import DEBUG
 ###############################################################################
@@ -71,13 +78,25 @@ class Ctfcli():
         IN START.SH, PERFORM THE FOLLOWING ACTIONS/COMMANDS
         >>> host@server$>python ./ctfcli/ ctfcli check_install
         / NOT IMPLEMENTED YET /
+
+        control flow:
+            set environment
+            grab config and internalize
+            instantiate linkage between tool and functionality
+                masterlist not required
+
     '''
     def __init__(self):
         # modify the structure of the program here by reassigning classes
+
+        # this step checks for the challenges folder and other required things
+        # will throw exception and EXIT if requirements are not met
         self._setenv()
         # process config file
         # bring in config functions
         self.config = Config(self.configfile)
+        # create empty Repository() Object
+        # requires location of challenges folder
         ctfdrepo = SandBoxyCTFdLinkage(self._challengesfolder, self.masterlist)        # load config file
         ctfdrepo._initconfig(self.config)
         # challenge templates, change this to use your own with a randomizer
@@ -99,22 +118,34 @@ class Ctfcli():
         Handles environment switching from being a 
         standlone module to being a submodule
         """
+        debuggreen(" getting pwd of tool")
         PWD = Path(os.path.realpath("."))
-
-        #PWD_LIST = os.listdir(PWD)
-        # if whatever not in PWD_LIST:
-        #   dosomethingdrastic(fuckitup)
-        #
         # this must be alongside the challenges folder if being used by itself
             # Master values
             # alter these accordingly
+        debuggreen("setting location of tool folder")
         self._toolfolder   = Path(os.path.dirname(__file__))
         greenprint(f"[+] Tool folder Located at {self._toolfolder}")
-        if DEBUG == True:
-            # set project root to simulate ctfcli being one conteXt higher
-            os.environ["PROJECT_ROOT"] = str(self._toolfolder.parent)
+        
+        #----OLD---
+        # maybe dont need this?
+        # might change the spec later
+        #if DEBUG == True:
+        # set project root to simulate ctfcli being one context higher
+        #----OLD---
+        
+        # Set this parent folder as project root
+        # ctfcli tool is in a subfolder and we are calling it from the main repository
+        # top level folder
+        # data directory holds the challenges
+        # we need it as an env var and local var
+        os.environ["PROJECT_ROOT"] = str(self._toolfolder.parent)
+        # just checking it got set
+        try:
             PROJECT_ROOT = os.getenv('PROJECT_ROOT')
             self.root = PROJECT_ROOT
+        except Exception:
+            errorlogger("Could not find project root env variable after setting it. Check permissions and shell environment")
         
         if __name__ == "__main__":
             # TODO: make function to check if they put it next to
@@ -122,18 +153,29 @@ class Ctfcli():
             try:
                 # check if alongside challenges folder,
                 # i.e. individual tool usage
+                debuggreen("finding parent directory")
                 onelevelup = self._toolfolder.parent
                 oneleveluplistdir = os.listdir(onelevelup)
+                debuggreen("looking for challenges folder")
+                # found an item named "challenge"
                 if ('challenges' in oneleveluplistdir):
+                    #is it a directory?
                     if os.path.isdir(oneleveluplistdir.get('challenges')):
                         yellowboldprint("[+] Challenge Folder Found, presuming to be repository location")
+                        debuggreen("setting challenge folder to main class")
                         self._challengesfolder = os.path.join(onelevelup, "challenges")
+                    # the repository is the directory above this, containing all the things
                     self._reporoot = onelevelup
+                # did not find folder
                 else:
                     yellowboldprint("[!] Challenge folder not found!")
+
                     if PROJECT_ROOT != None:
                         yellowboldprint(f"[+] Project root env var set as {PROJECT_ROOT}")
                         self._reporoot = Path(PROJECT_ROOT,"data","CTFd")
+                    else:
+                        yellowboldprint(f"[+] Project root env var NOT SET")
+
             except Exception:
                 errorlogger("[-] Error, cannot find repository! ")
         else:

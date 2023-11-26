@@ -106,14 +106,9 @@ http {
 # This file is copied as is, from this spot
     upstream ctfd {
         #server ${CTFDIP}:${CTFDPORT};
-        server ctfd:${CTFDPORT};
+        server ctfd:8000;
     }
-    upstream juiceshop {
-        server juiceshop:${JUICESHOPPORT};
-    }
-    upstream gitlab {
-        server gitlab:${GITLABPORT};
-    }
-    include /etc/nginx/conf.d/fightbiscuits.firewall-gateway.net.conf;
+
+    include /etc/nginx/conf.d/moopbox.wtf.conf;
     #include /etc/nginx/conf.d/moopboxen.local.conf;
 }

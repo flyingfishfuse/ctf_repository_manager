@@ -1,0 +1,69 @@
+global:
+
+# By default, scrape targets every 15 seconds.
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating
+  external_labels:
+      monitor: 'moopbox_homelab'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - 'alert.rules'
+  # - "first.rules"
+  # - "second.rules"
+
+# alert
+# alerting:
+#   alertmanagers:
+#   - scheme: http
+#     static_configs:
+#     - targets:
+#       - "alertmanager:9093"
+
+
+# The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+scrape_configs:
+
+  # data from prometheus internal sources
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+         - targets: ['prometheus:9090']
+
+    #container data
+  - job_name: cadvisor
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # hardware data
+  - job_name: 'docker'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    static_configs:
+      #- targets: ['127.0.0.1:9323']
+      - targets: ['host.docker.internal']
+      #- targets: ['moopbox:9323']
+
+  # traffic and routnig metrcs
+  # Override the global default
+  - job_name: 'traefik'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['traefik:8082']
+
+    #dns_sd_configs:
+    #- names:
+    #  - 'tasks.traefik'
+    #  type: 'A'
+    #  port: 8080
+  
+  # hardware data
+  - job_name: 'node-exporter'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['nodeexporter:9100']

@@ -65,8 +65,12 @@ host@server$> python ./ctfcli/ config <command>
         #parser = configparser.ConfigParser()
         # Preserve case in configparser
         #self.optionxform = str
-        self.config = configparser.ConfigParser()
-        self._readconfig(configpath)
+        try:
+            self.config = configparser.ConfigParser()
+            self._readconfig(configpath)
+        except Exception:
+            break
+
         #super(self).__init__()
 
     def _getallowedcategories(self):

@@ -18,7 +18,8 @@ COPY index.html /var/www/html/index.html
 #COPY conf/conf.d/fightbiscuits.firewall-gateway.net.conf /etc/nginx/conf.d/fightbiscuits.firewall-gateway.net.conf
 #testing
 #COPY conf/conf.d/moopboxen.local.conf /etc/nginx/conf.d/moopboxen.local.conf
-COPY conf/nginx.conf.template /etc/nginx/nginx.conf.template
+COPY conf/nginx.conf.template /etc/nginx/nginx.conf
+#.template
 COPY conf/fastcgi.conf /etc/nginx/fastcgi.conf
 COPY conf/mime.types /etc/nginx/mime.types
 
