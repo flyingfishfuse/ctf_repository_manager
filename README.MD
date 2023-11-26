@@ -31,7 +31,7 @@
 # CTFCLI 
     to create an initial repository,you must structure it as the following
 
-    repo folder
+    repo folder named "challenges"
         named category folder
             challenge folder
                 handout folder
