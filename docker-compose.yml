@@ -28,8 +28,15 @@ services:
       - target: 80
         published: 80
         mode: host
-
-        #- "traefik.docker.network=internalnetwork"
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik.rule=Host(`traefik.moopbox.wtf`)"
+      # HTTP
+        - "traefik.http.routers.traefik.entrypoints=web"
+        - "traefik.http.routers.traefik.service=traefikService"
+        - "traefik.http.routers.traefikService.service=api@internal"
+        - "traefik.http.services.traefikService.loadBalancer.server.port=8080"
+        - "traefik.docker.network=net"
     restart: unless-stopped
 
   ctfd:
@@ -56,8 +63,8 @@ services:
     depends_on:
       - db
 #        - nginx
-    expose:
-      - 8000
+    #expose:
+    #  - 8000
     #ports:
     #  - 8000:8000
       #extra_hosts:
@@ -69,8 +76,11 @@ services:
       #  ipv4_address: ${CTFDIP}
     labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.ctfd.rule=Path(`/ctfd`)"
+        - "traefik.http.routers.ctfd.rule=Host(`ctfd.moopbox.wtf)`)"
         - "traefik.http.routers.ctfd.entrypoints=web"
+        - "traefik.http.routers.ctfd.service=ctfdService"
+        - "traefik.http.services.ctfdService.loadBalancer.server.port=8000"
+        - "traefik.docker.network=net"
 
 #################################################################
 #                   REDIS SERVER

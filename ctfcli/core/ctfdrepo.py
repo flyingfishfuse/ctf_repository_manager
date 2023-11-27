@@ -2,10 +2,14 @@ import os
 from pathlib import Path
 from ctfcli.core.yamlstuff import Yaml
 from ctfcli.core.category import Category
-
 from ctfcli.core.challenge import Challenge
-from ctfcli.core.deployment import Deployment
+################################
 
+### ___FUTURE___###
+#from ctfcli.core.deployment import Deployment
+### ___FUTURE___###
+
+################################
 from ctfcli.core.repository import Repository
 from ctfcli.core.masterlist import Masterlist
 from ctfcli.core.apisession import APIHandler

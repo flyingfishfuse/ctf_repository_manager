@@ -8,33 +8,25 @@ from ctfcli.core.gitrepo import SandboxyGitRepository
 from ctfcli.utils.utils import redprint,greenprint, errorlogger
 from ctfcli.utils.config import Config
 #import configparser
+class CtfdLinkageBase():
+    '''
+    base metaclass for linkage between UI and backend functionality
+    '''
+    def __new__(cls,**kwargs):
+        #cls.__name__ = "Repo"
+        #cls.__qualname__= 'Repo'
+        #cls.tag = '!Repo:'
+        return super().__new__(cls)
+        #return super(cls).__new__(cls, *args, **kwargs)
 
-class SandBoxyCTFdLinkage():
-    """
-    CTFCLI
-
-    >>> host@server$> python ./ctfcli/ ctfcli
-
-    Used to upload challenges from the data directory in project root
-    And manage the ctfd instance
-
-    """
-
-
-    def __init__(self,
-                repositoryfolder:Path,
-                masterlistlocation:Path,
-                #configobject:Config
-                ):
-        self.repo = Repository
-        self.repofolder = repositoryfolder
-        self.masterlistlocation = masterlistlocation
-        self._ctfdops = SandboxyCTFdRepository(self.repofolder, self.masterlistlocation)
-        #self.gitops = SandboxyGitRepository()
-        #self.config = configobject
-        #self.config = configparser.ConfigParser
-        #self.config = Config(configfilelocation)
-
+    def __repr__(self):
+        '''
+        '''
+        wat = []
+        for key in self.__dict__:
+            wat.append(str(key) + " : " + str(self.__dict__[key]))
+        #return self_repr
+        return wat
 # This is an INTERNAL function
     def _checkmasterlist(self):
         """
@@ -81,6 +73,32 @@ class SandBoxyCTFdLinkage():
             masterlist._writenewmasterlist(self.masterlistlocation, newrepo,filemode="w")
         except Exception:
             errorlogger("[-] Failed to Update Masterlist :")
+
+class SandBoxyCTFdLinkage(CtfdLinkageBase):
+    """
+    CTFCLI
+
+    >>> host@server$> python ./ctfcli/ ctfdrepo
+
+    Used to upload challenges from the data directory in project root
+    And manage the ctfd instance
+
+    """
+
+
+    def __init__(self,
+                repositoryfolder:Path,
+                masterlistlocation:Path,
+                #configobject:Config
+                ):
+        self.repo = Repository
+        self.repofolder = repositoryfolder
+        self.masterlistlocation = masterlistlocation
+        self._ctfdops = SandboxyCTFdRepository(self.repofolder, self.masterlistlocation)
+        #self.gitops = SandboxyGitRepository()
+        #self.config = configobject
+        #self.config = configparser.ConfigParser
+        #self.config = Config(configfilelocation)
 
 # This is a USER function
     def init(self):

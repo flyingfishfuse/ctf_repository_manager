@@ -28,6 +28,7 @@ setup(
     classifiers=[],
     zip_safe=False,
     install_requires=[
+        "kubernetes",
         "cookiecutter==1.6.0",
         "fire==0.2.1",
         "pyyaml==5.4",

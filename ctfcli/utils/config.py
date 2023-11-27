@@ -66,10 +66,11 @@ host@server$> python ./ctfcli/ config <command>
         # Preserve case in configparser
         #self.optionxform = str
         try:
+            debuggreen("starting config parser")
             self.config = configparser.ConfigParser()
             self._readconfig(configpath)
         except Exception:
-            break
+            errorlogger("unable to load Config file, check permissions on the file and it's location and contents")
 
         #super(self).__init__()
 
@@ -93,6 +94,7 @@ host@server$> python ./ctfcli/ config <command>
         #with open(self.cfgfilepath, 'r') as self.configfile:
             #config = open(self.cfgfilepath)
         try:
+            debuggreen("getting config path from expected location")
             self.cfgfilepath = os.path.abspath(configpath)
             greenprint(f"[+] Reading Config {configpath}")
             #with open(self.cfgfilepath) as cfgfile:
