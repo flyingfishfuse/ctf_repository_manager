@@ -6,6 +6,11 @@
     this is an all in one setup script for a docker/kubernetes cluster
     specifically, it creates a pentesting sandbox/ctfd instance
 
+    I am "shaking the rug out" as it were, I got it to a functional state and moved to
+    version 1.x adding the deployment code but took a hiatus to focus on my life and
+    in that time I forgot where the hell I was at what the hell I was doing so please
+    excuse the mess while I fix the borked-ed-ness
+
 
 # Table Of Contents
 
@@ -72,10 +77,19 @@
 
     This will still require the challenges be organized according to the specification above
 
+    If you are just planning on using this software as-is, you run the commands:
+ ```bash
+chmod +x ./start.sh
+./start.sh deploy
+
+# then you run the ctfcli tool
+
+ctfcli help
+```   
     If you have changed anything in the repository (added/removed), The first time you run the tool
     you must use the command:
 
-    `ctfcli ctfdrepo init`
+    `ctfcli ctfdrepo init <config file path>`
 
     This will scan the folder and generate a masterfile.yaml of the challenge contents
     It creates a yaml representation of python code for tracking, validation and to "load"
