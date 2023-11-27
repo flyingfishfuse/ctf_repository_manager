@@ -166,7 +166,6 @@ class Ctfcli():
             self.root = PROJECT_ROOT
         except Exception:
             errorlogger("Could not find project root env variable after setting it. Check permissions and shell environment")
-        
         if __name__ == "__main__":
             # TODO: make function to check if they put it next to
             #  an actual repository fitting the spec

@@ -477,8 +477,7 @@ class ObjDumpDisassembler():
             scanfunc1()
             threaderfront = GenPerpThreader(line_of_text_front)
             scanfunc2 = self.scanarray(line_of_text_back)
-            threaderback = GenPerpThreader(
-        return DisassembledFile(hexstring,self.file_input)
+            threaderback = GenPerpThreader(return DisassembledFile(hexstring,self.file_input)
 
     def scanarray(self, listtoscan:list, printlines=True, direction=True):
         """
