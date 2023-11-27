@@ -1,5 +1,6 @@
     LINKS/CREDITS ARE IN LICENSE, README IS FOR INFORMATION
 
+# CTFD / CTFCLI based ctf in a box with automated docker or kubernetes deployment ... eventually
 # PENTEST SANDBOX
 
     this is an all in one setup script for a docker/kubernetes cluster
