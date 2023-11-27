@@ -1,1 +1,0 @@
-CTF{compress0rs_r_fun}

@@ -5,7 +5,7 @@ from pygments.formatters import TerminalFormatter
 from pygments.lexers import IniLexer, JsonLexer
 import os
 import json
-from ctfcli.utils.utils import greenprint,errorlogger
+from ctfcli.utils.utils import greenprint,errorlogger,debuggreen
 import subprocess
 from pathlib import Path
 
@@ -30,10 +30,10 @@ def setauth(function_to_authorize):
     """
     def genauth(self,
             config:bool=False,
-            url:str=None,
-            token:str=None,
-            username:str=None,
-            password:str=None
+            url:str="",
+            token:str="",
+            username:str="",
+            password:str=""
             ):
         try:
             # if they want to read information from the config file
@@ -150,7 +150,7 @@ host@server$> python ./ctfcli/ config <command>
             self.config.set('default','password', authdict['password'])
             self.config.set('default','token', authdict["token"])
             self.config.set('default','url', authdict['url'])
-            self.close()
+            self.config.close()
         except Exception:
             errorlogger("[-] Failed to store authentication information")
 
@@ -171,7 +171,7 @@ host@server$> python ./ctfcli/ config <command>
         except Exception:
             errorlogger("[-] Failed to store authentication information")
 
-    def edit(self, filepath:str=None,editor="micro"):
+    def edit(self, filepath:str,editor="micro"):
         '''
         >>> config edit
             Edit config with $EDITOR

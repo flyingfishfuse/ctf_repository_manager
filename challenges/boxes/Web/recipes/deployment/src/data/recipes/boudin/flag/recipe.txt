@@ -1,2 +1,0 @@
-Flag Bread
-CTF{let_the_shellz_rise_b4_baking}

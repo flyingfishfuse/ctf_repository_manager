@@ -17,6 +17,8 @@
                     
 # DAILY PLAN
 
+    finish various functions
+
     Starting the deployment code, this will essentially become the backend 
     to a ctfd/electron interface
 
@@ -28,17 +30,24 @@
 
 ![platform display](https://raw.githubusercontent.com/mister-hai/sandboxy/master/extra/docs/startscript.png))
 
-# CTFCLI 
+# CTFCLI
     to create an initial repository,you must structure it as the following
 
-    repo folder named "challenges"
-        named category folder
-            challenge folder
-                handout folder
-                    handout file/s
-                soution folder
-                    solution file/s
-                challenge.yaml
+        folder: ctfcli tool
+        folder: data
+            folder: CTFd
+                folder: challenges
+                    folder: category A
+                        folder: challenge_name
+                            file: challenge.yaml
+                            file: (dependant) deployment.yaml
+                            folder: handout
+                                file: handout file/s
+                            folder: soution
+                                file: solution file/s
+                    folder: category B
+                    folder: ... so on and so on
+                file:   masterlist.yaml
 
             If necessary, the following structure is needed for a deployment
             challenge folder
@@ -52,6 +61,27 @@
                     handout file/s
                 soution folder
                     solution file/s
+
+# usage
+
+    if you are running the tool outside of the context of this repository or not in the same
+    directory as the challenge folder you need to
+    use the command :
+    `ctfcli setprojectroot <full_path_goes_here>`
+
+    This will still require the challenges be organized according to the specification above
+
+    If you have changed anything in the repository (added/removed), The first time you run the tool
+    you must use the command:
+
+    `ctfcli ctfdrepo init`
+
+    This will scan the folder and generate a masterfile.yaml of the challenge contents
+    It creates a yaml representation of python code for tracking, validation and to "load"
+    the structure of the ctf repository into the application for later use without requiring 
+    scanning a second time. if anything changes in the folder with the challenges this app
+    will know and ignore it until scanned again.
+
 
 # kubernetes config
 

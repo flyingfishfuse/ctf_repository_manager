@@ -1,1 +1,0 @@
-../challenge/src/ripc4.c

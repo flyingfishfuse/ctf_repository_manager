@@ -1,1 +1,0 @@
-CTF{use_after_free_after_use_after_free}
