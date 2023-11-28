@@ -47,7 +47,7 @@ class SetPaths():
         self.CONFIG_PATH:Path
         self.config = config_object
 
-    def project_root(self, path_to_folder:Path) -> str:
+    def project_root(self, path_to_folder:Path) -> Path:
         '''assign specified folder as project root
         This folder should have a folder named "challenges" that fits the spec
         outlined in the README.MD
@@ -60,25 +60,26 @@ class SetPaths():
         debugyellow(self.PROJECT_ROOT)
         self.config.set(section="Default",option='projectroot',value=str(self.PROJECT_ROOT))
         self._writeconfig()
-        return str(self.PROJECT_ROOT)
+        return self.PROJECT_ROOT
 
-    def set_masterlist(self, masterlist_location:Path) -> str:
+    def set_masterlist(self, masterlist_location:Path) -> Path:
         '''assign specified master list to configuration'''
         debuggreen("getting path to masterlist location,")
         self.MASTERLIST_PATH = Path(os.path.realpath(masterlist_location))
         debugyellow(self.MASTERLIST_PATH)
         self.config.set(section="Default",option='masterlistlocation',value=str(self.MASTERLIST_PATH))
-        return str(self.MASTERLIST_PATH)
+        return self.MASTERLIST_PATH
 
-    def set_challenge_repository_dir(self, repository_dir:Path) -> str:
+    def set_challenge_repository_dir(self, repository_dir:Path) -> Path:
         ''' set location of challenges folder'''
         # The CTFd data should be constrained to a data folder for cleanliness
         debuggreen("getting expected path to ctfd data folder ")
-        self.CHALLENGEREPOROOT=os.path.realpath(repository_dir)
+        #self.CHALLENGEREPOROOT=os.path.realpath(repository_dir)
+        self.CHALLENGEREPOROOT=Path(repository_dir, "").resolve()
         debugyellow(self.CHALLENGEREPOROOT)
-        return str(self.CHALLENGEREPOROOT)
+        return self.CHALLENGEREPOROOT
     
-    def _set_config_location(self, config_location:Path) -> str:
+    def _set_config_location(self, config_location:Path) -> Path:
         '''in the future the user will be able to specify multiple locations
         for multiple deployments with the same UI'''
         debuggreen("getting path to config location,")
@@ -88,7 +89,7 @@ class SetPaths():
         else:
             self.CONFIG_PATH = config_location
         debugyellow(self.CONFIG_PATH)
-        return str(self.CONFIG_PATH)
+        return self.CONFIG_PATH
 
     def _writeconfig(self):
         ''' writes locations to config'''
@@ -165,7 +166,7 @@ class Ctfcli():
                 masterlist not required
 
     '''
-    def __init__(self):
+    def __init__(self, config_location:str="./config.cfg"):
         '''
         DO NOT make the software do any data operations in the __init__ 
         this is a CLI program that is controlled by the user and
@@ -175,10 +176,17 @@ class Ctfcli():
         # process config file
         # bring in config functions
         try:
+            # set paths relative to the location of this folder
             debuggreen("setting location of tool folder")
             self._toolfolder = Path(os.path.dirname(__file__)).parent.resolve()
             greenprint(f"[+] ctfcli tool folder Located at {self._toolfolder}")
-            self.config = Config(Path(self._toolfolder, "config.cfg"))
+            # looks for config in parent folder of tool folder
+            #self.config = Config(Path(self._toolfolder, "config.cfg"))
+            try:
+                self._config_set_check(config_location)
+                self.config = Config(self.CONFIG_LOCATION)
+            except Exception:
+                errorlogger("Could not set config location: check if file exists and permissions")
         except Exception:
             errorlogger("Could not find tool folder and set config, check permissions and file existance")
 
@@ -187,7 +195,7 @@ class Ctfcli():
         #PROJECT_ROOT = Path(os.path.join(os.path.dirname(__file__), '..'))
         important_paths          = SetPaths(self.config.config)
         self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
-        #self.CONFIG_LOCATION     = important_paths._set_config_location(str(Path(important_paths.PROJECT_ROOT, "config.cfg")))
+        self.CONFIG_LOCATION     = important_paths._set_config_location(Path(important_paths.PROJECT_ROOT, "config.cfg"))
         self.MASTERLIST_LOCATION = important_paths.set_masterlist(Path(important_paths.PROJECT_ROOT, "masterlist.yaml"))
         self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(Path(PROJECT_ROOT,'/data/CTFd/challenges'))
 
@@ -207,19 +215,34 @@ class Ctfcli():
         self._validate_locations()
 
         #self._set_locations()
-        self._challengesfolder = Path(self._reporoot, "challenges")
         #self.masterlist = Path(self._reporoot, "masterlist.yaml")
         self.configfile = Path(PROJECT_ROOT, "config.cfg")
 
         yellowboldprint(f'[+] Repository root ENV variable is {os.getenv("REPOROOT")}')
-        yellowboldprint(f'[+] Challenge root is {self._challengesfolder}')
+        yellowboldprint(f'[+] Challenge root is {self.CHALLENGEREPOROOT}')
         # this code is inactive currently
 
-        # create git repository
+    def _config_set_check(self,config_location:str):
+        '''Checks if user gave custom config location and sets new values accordingly
+        The results of this are stored in the Masterlist.yaml'''
+        if config_location == "./config.cfg":
+            greenprint("Using default configuration file")
+            self.CONFIG_LOCATION = Path(TOOL_LOCATION).parent / config_location
+        else:
+            # get full path of location given if relative path supplied as argument
+            self.CONFIG_LOCATION = Path(config_location).resolve()
+
+
+
+    def start_git(self):
+        '''create git repository from $PROJECT_ROOT'''
         try:
+            if os.getenv('PROJECT_ROOT') is not None:
+                self.gitops = SandboxyGitRepository(Path(str(os.getenv('PROJECT_ROOT'))))
             # we do this last so we can add all the created files to the git repo        
             # this is the git backend, operate this seperately
-            self.gitops = SandboxyGitRepository(Path(self.PROJECT_ROOT))
+            else:
+                self.gitops = SandboxyGitRepository(Path(self.PROJECT_ROOT))
             #self.gitops.createprojectrepo()
         except Exception:
             errorlogger("[-] Git Repository Creation Failed, check the logfile")
@@ -315,30 +338,7 @@ class Ctfcli():
                     raise Exception
         except Exception:
             errorlogger("[-] Error, cannot find repository! ")
-    #################################################################
-    # Setting location of masterlist
-    #################################################################
-        try:
-            # location of the all important masterlist
-            # # ~/meeplabben/data/masterlist.yaml
-            self.masterlist = Path(self._reporoot, "masterlist.yaml")
-            yellowboldprint(f'[+] Masterlist is expected to be at {self.masterlist}')
-        except Exception:
-            errorlogger("[-] failed to set masterlist location")
-    #################################################################
-    # Setting location of config file
-    #################################################################
-        try:    
-            # location of the config file
-            # ~/meeplabben/config.cfg
-            self.configfile = Path(self._reporoot, "config.cfg")
-            yellowboldprint(f'[+] Config File is expected to be at {self.configfile}')
 
-            # bring in config functions
-            self.config = Config(self.configfile)
-            self.set_config()
-        except Exception:
-            errorlogger("[-] Failed to set location of config file")
 
     def _getenv(self):
         '''
@@ -355,14 +355,14 @@ class Ctfcli():
             setattr(self,each, Path(os.getenv(each)))
  
 def main():
-   '''wat'''
+    '''wat'''
     commands = {
         "ctfcli"     : Ctfcli,
-        "set_root"   : Setroot
+        "set_root"   : SetPaths
         #"load_config": LoadConfig
         }
-   #fire.Fire(Ctfcli)
-   fire.Fire(commands)
+    #fire.Fire(Ctfcli)
+    fire.Fire(commands)
 
 if __name__ == "__main__":
     main()

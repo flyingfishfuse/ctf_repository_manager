@@ -61,45 +61,33 @@ class UITestConfig():
 
 #new_config = UITestConfig(Path("/home/moop/Desktop/work/ctf_repository_manager/extra/tutorials/tutorial_config.cfg"))
 
-class SetRoot():
-    def __init__(self):
-        '''sets the root directory for the project'''
-        self.PROJECT_ROOT = Path
-    def project_root(self, path_to_folder:Path):
-        '''assign specified folder as project root
-        This folder should have a folder named "challenges" that fits the spec
-        outlined in the README.MD
-        '''
-        #debuggreen("getting path to expected project directory, this should be the parent \
-        #            of the tool folder although you can assign your own \n  \
-        #            This can be changed using 'ctfcli change project path'")
-        self.PROJECT_ROOT = Path(os.path.realpath(path_to_folder))
-        print(self.PROJECT_ROOT)
 
 class Test1():
     # things in the __init__ run when the thing is called
-    def __init__(self, test_var:str):
+    def __init__(self, test_var:str="test_config"):
         self.msg = "test1"
         self.test_var_name = test_var
-        print(test_var)
-        print(self.test_var_name)
+        if test_var == "test_config":
+            print("using default config location")
+        else:
+            print("Using custom config location")
 
-    def speak(self):
-        print(self.msg)
+    def speak(self, blarp:str):
+        ''' makes a word be a word babeh'''
+        print(blarp)
 
 class Test2():
     def __init__(self):
         self.msg = "test2"
 
-    def speak(self):
+    def speak(self, test_var):
         print(self.msg)
 
 if __name__ == "__main__":
 
     fire.Fire({
         "test1"     : Test1,
-        "test2"   : Test2,
-        "set_root": SetRoot
+        "test2"   : Test2
     })
 #
 # We can instantiate it as follows: python example.py --name="Sherrerd Hall"
