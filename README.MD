@@ -70,14 +70,25 @@
 
 # usage
 
-    if you are running the tool outside of the context of this repository or not in the same
+    1. if you are running the tool outside of the context of this repository or not in the same
     directory as the challenge folder you need to
     use the command :
     `ctfcli setprojectroot <full_path_goes_here>`
 
-    This will still require the challenges be organized according to the specification above
+    2. This will still require the challenges be organized according to the specification above
+    
+    3. The first time you run this tool it will ALWAYS look for a config file NEXT to the 
+    tool folder in the SAME directory as the tool folder itself. If one is not present it will
+    ask for the location, provide a full system path to the config file.
+    
+    4. This software expects that the deployment data is alongside the tool so 
+    please have a look around the project and become familiar with it so you
+    may tailor it to your needs. The reason for this is because the `start.sh`
+    script will zip and encode the whole project into base64 then append it to 
+    itself for easy transmission. This behavior is similar to malware movement
+    so be sure your AV/IPS does not delete it :p
 
-    If you are just planning on using this software as-is, you run the commands:
+    5. If you are just planning on using this software as-is, you run the commands:
  ```bash
 chmod +x ./start.sh
 ./start.sh deploy
@@ -233,6 +244,22 @@ ctfcli help
         Instructions for setting up a server from scratch can be found here
 
         extras/ServerSetup.MD
+
+# Config contents example
+```conf
+[default]
+username=moop
+password=password
+authtoken = faketoken12345
+#token=1712d60a762e1bf82bf8374d2b4e26a93b30dde3063ce51dac68fce30c4cace7
+# this is without schema, only the domain
+#url=127.0.0.1:8000
+url=ctfd.moopbox.wtf
+categories=crypto,osint,exploitation,reversing,web,forensics,scripting,networking,linux,miscellaneous
+hints=True
+masterlistlocation=home/moop/desktop/work/ctf_deployment_manager/data/CTFd/masterlist.yaml
+projectroot=home/moop/desktop/work/ctf_deployment_manager/
+```
 
 # certbot initiation
     

@@ -2,7 +2,7 @@ import fire
 import os
 from pathlib import Path
 import configparser
-
+PWD = os.path.realpath(".")
 ################################################################
 # config contents
 ################################################################
@@ -20,7 +20,9 @@ class UITestConfig():
         #self._read_config(configpath)
         # if path not supplied use default
         if file_path== Path(""):
-            self.cfgfilepath = 
+            self.cfgfilepath = str(Path(PWD, 'config.cfg'))
+        else:
+            self.cfgfilepath = file_path
 
     def readconfig(self,configpath:Path):
         ''' user interface to config class'''
@@ -57,7 +59,7 @@ class UITestConfig():
         with open(self.cfgfilepath, 'w') as configfile:
             self.config.write(configfile)
 
-new_config = UITestConfig(Path("/home/moop/Desktop/work/ctf_repository_manager/extra/tutorials/tutorial_config.cfg"))
+#new_config = UITestConfig(Path("/home/moop/Desktop/work/ctf_repository_manager/extra/tutorials/tutorial_config.cfg"))
 
 class SetRoot():
     def __init__(self):
@@ -75,8 +77,12 @@ class SetRoot():
         print(self.PROJECT_ROOT)
 
 class Test1():
-    def __init__(self):
+    # things in the __init__ run when the thing is called
+    def __init__(self, test_var:str):
         self.msg = "test1"
+        self.test_var_name = test_var
+        print(test_var)
+        print(self.test_var_name)
 
     def speak(self):
         print(self.msg)

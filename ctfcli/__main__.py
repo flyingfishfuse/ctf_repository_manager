@@ -1,3 +1,5 @@
+from configparser import ConfigParser
+import configparser
 import os,sys,fire
 #from ctfcli.utils.config import Config
 from pathlib import Path
@@ -37,14 +39,15 @@ debugyellow(TOOL_LOCATION)
 
 ###############################################################################
 
-class SetRoot():
-    def __init__(self):
+class SetPaths():
+    def __init__(self,config_object:configparser.ConfigParser):
         '''sets various important locations'''
-        self.PROJECT_ROOT = str
-        self.MASTERLIST_PATH = str
-        self.CONFIG_PATH = str
+        self.PROJECT_ROOT:str = ''
+        self.MASTERLIST_PATH:str = ''
+        self.CONFIG_PATH:str = ''
+        self.config = config_object
 
-    def project_root(self, path_to_folder:str) -> str:
+    def project_root(self, path_to_folder:str = '') -> str:
         '''assign specified folder as project root
         This folder should have a folder named "challenges" that fits the spec
         outlined in the README.MD
@@ -54,6 +57,8 @@ class SetRoot():
                     This can be changed using 'set_root project_root <full path to folder>'")
         self.PROJECT_ROOT = os.path.realpath(path_to_folder)
         debugyellow(self.PROJECT_ROOT)
+        self.config.set(section="Default",option='projectroot',value=self.PROJECT_ROOT)
+        self._writeconfig()
         return self.PROJECT_ROOT
 
     def set_masterlist(self, masterlist_location:str) -> str:
@@ -61,17 +66,32 @@ class SetRoot():
         debuggreen("getting path to masterlist location,")
         self.MASTERLIST_PATH = os.path.realpath(masterlist_location)
         debugyellow(self.MASTERLIST_PATH)
+        self.config.set(section="Default",option='masterlistlocation',value=self.MASTERLIST_PATH)
         return self.MASTERLIST_PATH
+
+    def set_challenge_repository_dir(self, repository_dir:str) -> str:
+        ''' set location of challenges folder'''
+        # The CTFd data should be constrained to a data folder for cleanliness
+        debuggreen("getting expected path to ctfd data folder ")
+        self.CHALLENGEREPOROOT=os.path.realpath(repository_dir)
+        debugyellow(self.CHALLENGEREPOROOT)
     
-    def set_config_location(self, config_location:str) -> str:
+    def _set_config_location(self, config_location:str='') -> str:
+        '''in the future the user will be able to specify multiple locations
+        for multiple deployments with the same UI'''
         debuggreen("getting path to config location,")
-        self.CONFIG_PATH = os.path.realpath(config_location)
+        if config_location == '':
+            self.CONFIG_PATH = str(Path(PROJECT_ROOT, 'config.cfg'))
+            #self.CONFIG_PATH = os.path.realpath(config_location)
+        else:
+            self.CONFIG_PATH = config_location
         debugyellow(self.CONFIG_PATH)
         return self.CONFIG_PATH
 
     def _writeconfig(self):
         ''' writes locations to config'''
-
+        with open(self.CONFIG_PATH, 'w') as configfile:
+            self.config.write(configfile)
 
 class Ctfcli():
     '''
@@ -150,98 +170,64 @@ class Ctfcli():
         ALL operations that are anything beyond getting as framework 
         setup are verboten!
         '''
-        # if they 
-        self._get_paths()
-        # this step checks for the challenges folder and other required things
-        # will throw exception and EXIT if requirements are not met
-        self._setenv()
         # process config file
         # bring in config functions
-        self.config = Config(self.configfile)
-        # create empty Repository() Object
-        # requires location of challenges folder
-        self.ctfdrepo = SandBoxyCTFdLinkage(self._challengesfolder, 
-                                            self.masterlist)
-        # load config file
-        self.ctfdrepo._initconfig(self.config)
-        # challenge templates, change this to use your own with a randomizer
-        self.TEMPLATESDIR = Path(self._toolfolder , "ctfcli", "templates")
-
-        # create git repository
         try:
-            # we do this last so we can add all the created files to the git repo        
-            # this is the git backend, operate this seperately
-            self.gitops = SandboxyGitRepository(self._reporoot)
-            #self.gitops.createprojectrepo()
+            debuggreen("setting location of tool folder")
+            self._toolfolder = Path(os.path.dirname(__file__)).parent.resolve()
+            greenprint(f"[+] ctfcli tool folder Located at {self._toolfolder}")
+            self.config = Config(Path(self._toolfolder, "config.cfg"))
         except Exception:
-            errorlogger("[-] Git Repository Creation Failed, check the logfile")
-        
-        # FUTURE DEVELOPMENTS
-        # we import theswe if running in submodule mode
-        self.important_env_list = [
-            "PROJECT_ROOT",
-            "CHALLENGEREPOROOT",
-             "COMPOSEDIRECTORY",
-             "KUBECONFIGPATH",
-        ]
-
-    def _get_paths(self):
-        ''' gets paths to important files and directories'''
+            errorlogger("Could not find tool folder and set config, check permissions and file existance")
 
         # this can be reassigned for allowing the challenges to sit alongside the tool
         # in a future revision it may be required
         #PROJECT_ROOT = Path(os.path.join(os.path.dirname(__file__), '..'))
-        important_paths = SetRoot()
-        self.CONFIG_LOCATION = important_paths.set_config_location(important_paths.PROJECT_ROOT, "config.cfg")
-        self.MASTERLIST_LOCATION = important_paths.set_masterlist(Path(important_paths.PROJECT_ROOT, "masterlist.yaml")
-        self.PROJECT_ROOT = important_paths.project_root(Path(TOOL_LOCATION).parent)
+        important_paths          = SetPaths(self.config.config)
+        self.PROJECT_ROOT        = important_paths.project_root(str(Path(TOOL_LOCATION).parent))
+        #self.CONFIG_LOCATION     = important_paths._set_config_location(str(Path(important_paths.PROJECT_ROOT, "config.cfg")))
+        self.MASTERLIST_LOCATION = important_paths.set_masterlist(str(Path(important_paths.PROJECT_ROOT, "masterlist.yaml")))
+        self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(str(Path(PROJECT_ROOT,'/data/CTFd/challenges')))
 
+        # this step checks for the challenges folder and other required things
+        # will throw exception and EXIT if requirements are not met
+        self._setenv()
+        # create empty Repository() Object
+        # requires location of challenges folder
+        self.ctfdrepo = SandBoxyCTFdLinkage(repositoryfolder   = Path(self.CHALLENGEREPOROOT), 
+                                            masterlistlocation = Path(self.MASTERLIST_LOCATION))
+        # load config file
+        self.ctfdrepo._initconfig(self.config)
+        # challenge templates, change this to use your own with a randomizer
+        #self.TEMPLATESDIR = Path(self.toolfolder , "ctfcli", "templates")
+
+
+        self._validate_locations()
+        # create git repository
+        try:
+            # we do this last so we can add all the created files to the git repo        
+            # this is the git backend, operate this seperately
+            self.gitops = SandboxyGitRepository(Path(self.PROJECT_ROOT))
+            #self.gitops.createprojectrepo()
+        except Exception:
+            errorlogger("[-] Git Repository Creation Failed, check the logfile")
+        
     #def set_config_location(self, config_location:str):
     #    debuggreen("getting path to config location,")
     #    self.CONFIG_PATH = os.path.realpath(config_location)
     #    debugyellow(self.CONFIG_PATH)
-
-        # The CTFd data should be constrained to a data folder for cleanliness
-        debuggreen("getting expected path to ctfd data folder ")
-        self.CHALLENGEREPOROOT=Path(PROJECT_ROOT,'/data/CTFd')
-        debugyellow("self.CHALLENGEREPOROOT")
-
-    def set_new_paths(self, project_root=None):
-        ''' This is used to set custom paths to the project folder if this tool is beiong used outside of meeplab'''
-        self.PROJECT_ROOT = Path(os.path.dirname(project_root))
 
     def _setenv(self):
         """
         Handles environment switching from being a 
         standlone module to being a submodule
         """
-        #debuggreen(" getting pwd of tool")
-        #PWD = Path(os.path.realpath("."))
-        # this must be alongside the challenges folder if being used by itself
-            # Master values
-            # alter these accordingly
-        debuggreen("setting location of tool folder")
-        self._toolfolder   = Path(os.path.dirname(__file__)).parent.resolve()
-        greenprint(f"[+] Tool folder Located at {self._toolfolder}")
-        
-        #----OLD---
-        # maybe dont need this?
-        # might change the spec later
-        #if DEBUG == True:
-        # set project root to simulate ctfcli being one context higher
-        #----OLD---
-        
         # Set this parent folder as project root
         # ctfcli tool is in a subfolder and we are calling it from the main repository
         # we need it as an env var and local var
         os.environ["PROJECT_ROOT"] = str(self.PROJECT_ROOT) #str(self._toolfolder.parent)
-        # just checking it got set
-        try:
-            PROJECT_ROOT = os.getenv('PROJECT_ROOT')
-            self.root = PROJECT_ROOT
-        except Exception:
-            errorlogger("Could not find project root env variable after setting it. Check permissions and shell environment")
-        self._validate_locations()
+        os.environ["MASTERLIST_LOCATION"] = str(self.MASTERLIST_LOCATION)
+        os.environ["CONFIG_LOCATION"] = str(self.CONFIG_LOCATION)
     
     def _get_project_root(self,path_to_folder:Path):
         ''' sets a variable with the location of the root folder for the project'''
