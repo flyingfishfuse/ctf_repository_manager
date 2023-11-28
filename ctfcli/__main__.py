@@ -5,7 +5,7 @@ import os,sys,fire
 from pathlib import Path
 from __main__ import PROJECT_ROOT
 
-from ctfcli.utils.utils import DEBUG
+from ctfcli.utils.utils import DEBUG,is_named_directory
 from ctfcli.utils.utils import errorlogger, yellowboldprint,greenprint,redprint
 from ctfcli.utils.utils import debugblue,debuggreen,debugred,debugyellow
 
@@ -42,12 +42,12 @@ debugyellow(TOOL_LOCATION)
 class SetPaths():
     def __init__(self,config_object:configparser.ConfigParser):
         '''sets various important locations'''
-        self.PROJECT_ROOT:str = ''
-        self.MASTERLIST_PATH:str = ''
-        self.CONFIG_PATH:str = ''
+        self.PROJECT_ROOT:Path
+        self.MASTERLIST_PATH:Path
+        self.CONFIG_PATH:Path
         self.config = config_object
 
-    def project_root(self, path_to_folder:str = '') -> str:
+    def project_root(self, path_to_folder:Path) -> str:
         '''assign specified folder as project root
         This folder should have a folder named "challenges" that fits the spec
         outlined in the README.MD
@@ -55,38 +55,40 @@ class SetPaths():
         debuggreen("getting path to expected project directory, this should be the parent \
                     of the tool folder although you can assign your own \n  \
                     This can be changed using 'set_root project_root <full path to folder>'")
-        self.PROJECT_ROOT = os.path.realpath(path_to_folder)
+        # linter throwing an error on this one?
+        self.PROJECT_ROOT = Path(os.path.realpath(path_to_folder))
         debugyellow(self.PROJECT_ROOT)
-        self.config.set(section="Default",option='projectroot',value=self.PROJECT_ROOT)
+        self.config.set(section="Default",option='projectroot',value=str(self.PROJECT_ROOT))
         self._writeconfig()
-        return self.PROJECT_ROOT
+        return str(self.PROJECT_ROOT)
 
-    def set_masterlist(self, masterlist_location:str) -> str:
+    def set_masterlist(self, masterlist_location:Path) -> str:
         '''assign specified master list to configuration'''
         debuggreen("getting path to masterlist location,")
-        self.MASTERLIST_PATH = os.path.realpath(masterlist_location)
+        self.MASTERLIST_PATH = Path(os.path.realpath(masterlist_location))
         debugyellow(self.MASTERLIST_PATH)
-        self.config.set(section="Default",option='masterlistlocation',value=self.MASTERLIST_PATH)
-        return self.MASTERLIST_PATH
+        self.config.set(section="Default",option='masterlistlocation',value=str(self.MASTERLIST_PATH))
+        return str(self.MASTERLIST_PATH)
 
-    def set_challenge_repository_dir(self, repository_dir:str) -> str:
+    def set_challenge_repository_dir(self, repository_dir:Path) -> str:
         ''' set location of challenges folder'''
         # The CTFd data should be constrained to a data folder for cleanliness
         debuggreen("getting expected path to ctfd data folder ")
         self.CHALLENGEREPOROOT=os.path.realpath(repository_dir)
         debugyellow(self.CHALLENGEREPOROOT)
+        return str(self.CHALLENGEREPOROOT)
     
-    def _set_config_location(self, config_location:str='') -> str:
+    def _set_config_location(self, config_location:Path) -> str:
         '''in the future the user will be able to specify multiple locations
         for multiple deployments with the same UI'''
         debuggreen("getting path to config location,")
         if config_location == '':
-            self.CONFIG_PATH = str(Path(PROJECT_ROOT, 'config.cfg'))
+            self.CONFIG_PATH = Path(PROJECT_ROOT, 'config.cfg')
             #self.CONFIG_PATH = os.path.realpath(config_location)
         else:
             self.CONFIG_PATH = config_location
         debugyellow(self.CONFIG_PATH)
-        return self.CONFIG_PATH
+        return str(self.CONFIG_PATH)
 
     def _writeconfig(self):
         ''' writes locations to config'''
@@ -184,10 +186,10 @@ class Ctfcli():
         # in a future revision it may be required
         #PROJECT_ROOT = Path(os.path.join(os.path.dirname(__file__), '..'))
         important_paths          = SetPaths(self.config.config)
-        self.PROJECT_ROOT        = important_paths.project_root(str(Path(TOOL_LOCATION).parent))
+        self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
         #self.CONFIG_LOCATION     = important_paths._set_config_location(str(Path(important_paths.PROJECT_ROOT, "config.cfg")))
-        self.MASTERLIST_LOCATION = important_paths.set_masterlist(str(Path(important_paths.PROJECT_ROOT, "masterlist.yaml")))
-        self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(str(Path(PROJECT_ROOT,'/data/CTFd/challenges')))
+        self.MASTERLIST_LOCATION = important_paths.set_masterlist(Path(important_paths.PROJECT_ROOT, "masterlist.yaml"))
+        self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(Path(PROJECT_ROOT,'/data/CTFd/challenges'))
 
         # this step checks for the challenges folder and other required things
         # will throw exception and EXIT if requirements are not met
@@ -203,6 +205,16 @@ class Ctfcli():
 
 
         self._validate_locations()
+
+        #self._set_locations()
+        self._challengesfolder = Path(self._reporoot, "challenges")
+        #self.masterlist = Path(self._reporoot, "masterlist.yaml")
+        self.configfile = Path(PROJECT_ROOT, "config.cfg")
+
+        yellowboldprint(f'[+] Repository root ENV variable is {os.getenv("REPOROOT")}')
+        yellowboldprint(f'[+] Challenge root is {self._challengesfolder}')
+        # this code is inactive currently
+
         # create git repository
         try:
             # we do this last so we can add all the created files to the git repo        
@@ -227,7 +239,7 @@ class Ctfcli():
         # we need it as an env var and local var
         os.environ["PROJECT_ROOT"] = str(self.PROJECT_ROOT) #str(self._toolfolder.parent)
         os.environ["MASTERLIST_LOCATION"] = str(self.MASTERLIST_LOCATION)
-        os.environ["CONFIG_LOCATION"] = str(self.CONFIG_LOCATION)
+        #os.environ["CONFIG_LOCATION"] = str(self.CONFIG_LOCATION)
     
     def _get_project_root(self,path_to_folder:Path):
         ''' sets a variable with the location of the root folder for the project'''
@@ -244,57 +256,21 @@ class Ctfcli():
         '''sets a variable with the location of the masterlist.yaml'''
 
 
-    def _validate_locations():
+    def _validate_locations(self):
         ''' Validation for folder and data locations to ensure smooth operation '''
 
         #if __name__ == "__main__":
             # TODO: make function to check if they put it next to
             #  an actual repository fitting the spec
         try:
-            # check if alongside challenges folder,
-            # i.e. individual tool usage
-            #debuggreen("finding parent directory")
-            #onelevelup = self._toolfolder.parent
-            #oneleveluplistdir = os.listdir(onelevelup)
-            data_dir_listing = os.listdir(CHALLENGEREPOROOT)
-            #debuggreen("looking for challenges folder")
-            # found an item named "challenge"
-            #if ('challenges' in oneleveluplistdir):
-            if ('challenges' in data_dir_listing):
-                #is it a directory?
-                if os.path.isdir(oneleveluplistdir.get('challenges')):
-                    yellowboldprint("[+] Challenge Folder Found, presuming to be repository location")
-                    debuggreen("setting challenge folder to main class")
-                    self._challengesfolder = os.path.join(onelevelup, "challenges")
+            if Path(self.CHALLENGEREPOROOT).is_dir():
+                yellowboldprint("[+] Challenge Folder Found, presuming to be repository location")
                 # the repository is the directory above this, containing all the things
-                self._reporoot = onelevelup
-            # did not find folder
             else:
                 yellowboldprint("[!] Challenge folder not found!")
-
-                if PROJECT_ROOT != None:
-                    yellowboldprint(f"[+] Project root env var set as {PROJECT_ROOT}")
-                    self._reporoot = Path(PROJECT_ROOT,"data","CTFd")
-                else:
-                    yellowboldprint(f"[+] Project root env var NOT SET")
-
         except Exception:
             errorlogger("[-] Error, cannot find repository! ")
-    
-    #else:
-            #from __main__ import PROJECT_ROOT
-            #self._reporoot = Path(PROJECT_ROOT,"data","CTFd")
 
-        os.environ["REPOROOT"] = str(self._reporoot)
-
-        _set_locations()
-        self._challengesfolder = Path(self._reporoot, "challenges")
-        #self.masterlist = Path(self._reporoot, "masterlist.yaml")
-        self.configfile = Path(PROJECT_ROOT, "config.cfg")
-
-        yellowboldprint(f'[+] Repository root ENV variable is {os.getenv("REPOROOT")}')
-        yellowboldprint(f'[+] Challenge root is {self._challengesfolder}')
-        # this code is inactive currently
 
     def _set_locations():
         '''

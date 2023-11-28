@@ -141,6 +141,15 @@ def errorlogger(message):
             )
         )
 
+def get_directory(path:Path, named_item:str):# -> Path:
+    ''' Check if something is a directory with a specific name'''
+    try:
+        # I got this from Bing AI so there might be issues with it
+        item_of_interest = (lambda x: x[0] if x else exec('assert False, "List is empty"'))([Path(item) for item in path.iterdir() if item.is_dir() and item.stem == named_item])
+        return item_of_interest
+    except ValueError:
+        errorlogger("Directory not in location specified: %s" % path)
+        return False
 
 def _processfoldertotarfile(folder:Path,filename='default')-> tarfile.TarFile:
     '''
