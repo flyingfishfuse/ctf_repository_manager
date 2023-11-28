@@ -86,13 +86,10 @@ class SandBoxyCTFdLinkage(CtfdLinkageBase):
     """
 
 
-    def __init__(self, **kwargs):
-                #repositoryfolder:Path,
-                #masterlistlocation:Path,
-                #configobject:Config
+    def __init__(self,**important_items):
         self.repo = Repository
-        self.repofolder:Path = kwargs.get('masterlist')
-        self.masterlistlocation = kwargs.get('masterlist')
+        self.repofolder:Path = important_items['repository']
+        self.masterlistlocation = important_items['masterlist']
         self._ctfdops = SandboxyCTFdRepository(self.repofolder, self.masterlistlocation)
         #self.gitops = SandboxyGitRepository()
         #self.config = configobject

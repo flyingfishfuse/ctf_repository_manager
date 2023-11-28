@@ -203,23 +203,17 @@ class Ctfcli():
 
         #self._setenv()
 
+        # currently, only the challenge folder needs validation
         self._validate_locations()
-
-        #self._set_locations()
-        #self.masterlist = Path(self._reporoot, "masterlist.yaml")
-        self.configfile = Path(PROJECT_ROOT, "config.cfg")
-
-        yellowboldprint(f'[+] Repository root ENV variable is {os.getenv("REPOROOT")}')
-        yellowboldprint(f'[+] Challenge root is {self.CHALLENGEREPOROOT}')
-        # this code is inactive currently
 
     def init(self):
         ''' '''
         # create empty Repository() Object
         # requires location of challenges folder
-        repo = SandBoxyCTFdLinkage({'repository' : self.CHALLENGEREPOROOT, 
-                                    'masterlist' : self.MASTERLIST_LOCATION
-                                   })
+        important_items={'repository' : self.CHALLENGEREPOROOT, 
+                'masterlist' : self.MASTERLIST_LOCATION
+                }
+        repo = SandBoxyCTFdLinkage(important_items)
         # load config file
         repo._initconfig(self.config)
         # challenge templates, change this to use your own with a randomizer
