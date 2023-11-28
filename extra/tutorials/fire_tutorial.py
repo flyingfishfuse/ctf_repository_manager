@@ -64,31 +64,32 @@ class UITestConfig():
 
 class Test1():
     # things in the __init__ run when the thing is called
-    def __init__(self, test_var:str="test_config"):
+    def __init__(self):
         self.msg = "test1"
-        self.test_var_name = test_var
-        if test_var == "test_config":
-            print("using default config location")
-        else:
-            print("Using custom config location")
 
-    def speak(self, blarp:str):
+    def speak(self, blarp:str, test_var:str=""):
         ''' makes a word be a word babeh'''
+        self.test_var_name = test_var
         print(blarp)
+        print(self.msg)
+        print(self.test_var_name)
 
 class Test2():
     def __init__(self):
-        self.msg = "test2"
+        self.msg = "test asdfwqer"
 
     def speak(self, test_var):
         print(self.msg)
 
-if __name__ == "__main__":
+    def test(self):
+        print("something testy")
 
-    fire.Fire({
-        "test1"     : Test1,
-        "test2"   : Test2
-    })
+if __name__ == "__main__":
+    #fire.Fire({
+    #    "test1"     : Test1,
+    #    "test2"   : Test2
+    #})
+    fire.Fire(Test2)
 #
 # We can instantiate it as follows: python example.py --name="Sherrerd Hall"
 #Arguments to other functions may be passed positionally or by name using flag syntax.

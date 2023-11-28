@@ -1,6 +1,6 @@
     LINKS/CREDITS ARE IN LICENSE, README IS FOR INFORMATION
 
-# CTFD / CTFCLI based ctf in a box with automated docker or kubernetes deployment ... eventually
+# CTFD / CTFCLI_rewrite based ctf in a box with automated docker or kubernetes deployment ... eventually
 # PENTEST SANDBOX
 
     this is an all in one setup script for a docker/kubernetes cluster
@@ -19,7 +19,6 @@
     system prep
     KCTF INSTRUCTIONS
     NETWORK LAYOUT 
-    There are two directories of concern
                     
 # DAILY PLAN
 
@@ -70,16 +69,33 @@
 
 # usage
 
-    1. if you are running the tool outside of the context of this repository or not in the same
-    directory as the challenge folder you need to
-    use the command :
-    `ctfcli setprojectroot <full_path_goes_here>`
+If the infrastructure or repository need to change, a
+new masterlist needs to be created.
+
+    1. if you are running the tool outside of the context of this repository (custom repo) or not 
+    in the same directory as the challenge folder you need to use the commands :
+
+```bash
+# maybe not these anymore?
+#export CONFIG_LOCATION=<full_path_goes_here>
+#export PROJECT_ROOT=<full_path_goes_here>
+#export CHALLENGE_REPO_ROOT=<full_path_goes_here>
+ctfcli init --config=<full_path_goes_here>
+
+```
 
     2. This will still require the challenges be organized according to the specification above
     
     3. The first time you run this tool it will ALWAYS look for a config file NEXT to the 
     tool folder in the SAME directory as the tool folder itself. If one is not present it will
-    ask for the location, provide a full system path to the config file.
+    exit without running
+    provide a full system path to the config file by setting the env variable
+
+```bash
+# maybe not these anymore?
+#export CONFIG_LOCATION=<full_path_goes_here>
+
+```
     
     4. This software expects that the deployment data is alongside the tool so 
     please have a look around the project and become familiar with it so you
@@ -97,10 +113,11 @@ chmod +x ./start.sh
 
 ctfcli help
 ```   
+
     If you have changed anything in the repository (added/removed), The first time you run the tool
     you must use the command:
 
-    `ctfcli ctfdrepo init <config file path>`
+    `ctfcli repo init`
 
     This will scan the folder and generate a masterfile.yaml of the challenge contents
     It creates a yaml representation of python code for tracking, validation and to "load"

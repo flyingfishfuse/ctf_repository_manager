@@ -39,13 +39,13 @@ debugyellow(TOOL_LOCATION)
 
 ###############################################################################
 
-class SetPaths():
+class Setpaths():
     def __init__(self,config_object:configparser.ConfigParser):
         '''sets various important locations'''
-        self.PROJECT_ROOT:Path
-        self.MASTERLIST_PATH:Path
-        self.CONFIG_PATH:Path
-        self.config = config_object
+        #self.PROJECT_ROOT = Path
+        #self.MASTERLIST_PATH = Path
+        #self.CONFIG_PATH = Path
+        self.config= config_object
 
     def project_root(self, path_to_folder:Path) -> Path:
         '''assign specified folder as project root
@@ -173,44 +173,35 @@ class Ctfcli():
         ALL operations that are anything beyond getting as framework 
         setup are verboten!
         '''
-        # process config file
-        # bring in config functions
+        # step 1: Get config
+            # default
+            #   or
+            # user supplied
         try:
             # set paths relative to the location of this folder
             debuggreen("setting location of tool folder")
             self._toolfolder = Path(os.path.dirname(__file__)).parent.resolve()
             greenprint(f"[+] ctfcli tool folder Located at {self._toolfolder}")
-            # looks for config in parent folder of tool folder
-            #self.config = Config(Path(self._toolfolder, "config.cfg"))
+            # if config param is not modified by user it looks for config 
+            # in parent folder of tool folder, otherwise it looks for
+            # the config in the specified location
             try:
                 self._config_set_check(config_location)
+                #self.config = Config(Path(self._toolfolder, "config.cfg"))
                 self.config = Config(self.CONFIG_LOCATION)
             except Exception:
                 errorlogger("Could not set config location: check if file exists and permissions")
         except Exception:
             errorlogger("Could not find tool folder and set config, check permissions and file existance")
 
-        # this can be reassigned for allowing the challenges to sit alongside the tool
-        # in a future revision it may be required
-        #PROJECT_ROOT = Path(os.path.join(os.path.dirname(__file__), '..'))
-        important_paths          = SetPaths(self.config.config)
-        self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
+        # step 2: set paths
+        important_paths          = Setpaths(self.config.config)
         self.CONFIG_LOCATION     = important_paths._set_config_location(Path(important_paths.PROJECT_ROOT, "config.cfg"))
+        self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent))
         self.MASTERLIST_LOCATION = important_paths.set_masterlist(Path(important_paths.PROJECT_ROOT, "masterlist.yaml"))
         self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(Path(PROJECT_ROOT,'/data/CTFd/challenges'))
 
-        # this step checks for the challenges folder and other required things
-        # will throw exception and EXIT if requirements are not met
-        self._setenv()
-        # create empty Repository() Object
-        # requires location of challenges folder
-        self.ctfdrepo = SandBoxyCTFdLinkage(repositoryfolder   = Path(self.CHALLENGEREPOROOT), 
-                                            masterlistlocation = Path(self.MASTERLIST_LOCATION))
-        # load config file
-        self.ctfdrepo._initconfig(self.config)
-        # challenge templates, change this to use your own with a randomizer
-        #self.TEMPLATESDIR = Path(self.toolfolder , "ctfcli", "templates")
-
+        #self._setenv()
 
         self._validate_locations()
 
@@ -222,16 +213,35 @@ class Ctfcli():
         yellowboldprint(f'[+] Challenge root is {self.CHALLENGEREPOROOT}')
         # this code is inactive currently
 
+    def init(self):
+        ''' '''
+        # create empty Repository() Object
+        # requires location of challenges folder
+        repo = SandBoxyCTFdLinkage({'repository' : self.CHALLENGEREPOROOT, 
+                                    'masterlist' : self.MASTERLIST_LOCATION
+                                   })
+        # load config file
+        repo._initconfig(self.config)
+        # challenge templates, change this to use your own with a randomizer
+        #self.TEMPLATESDIR = Path(self.toolfolder , "ctfcli", "templates")
+
+    def set():
+        '''Sets variables for operation'''
+
     def _config_set_check(self,config_location:str):
         '''Checks if user gave custom config location and sets new values accordingly
         The results of this are stored in the Masterlist.yaml'''
+        #if config param not used on CLI
         if config_location == "./config.cfg":
             greenprint("Using default configuration file")
             self.CONFIG_LOCATION = Path(TOOL_LOCATION).parent / config_location
+        
         else:
             # get full path of location given if relative path supplied as argument
             self.CONFIG_LOCATION = Path(config_location).resolve()
-
+    
+    def _check_masterlist(self):
+        '''Checks if master list is available'''
 
 
     def start_git(self):
@@ -252,7 +262,7 @@ class Ctfcli():
     #    self.CONFIG_PATH = os.path.realpath(config_location)
     #    debugyellow(self.CONFIG_PATH)
 
-    def _setenv(self):
+    #def _setenv(self):
         """
         Handles environment switching from being a 
         standlone module to being a submodule
@@ -260,8 +270,8 @@ class Ctfcli():
         # Set this parent folder as project root
         # ctfcli tool is in a subfolder and we are calling it from the main repository
         # we need it as an env var and local var
-        os.environ["PROJECT_ROOT"] = str(self.PROJECT_ROOT) #str(self._toolfolder.parent)
-        os.environ["MASTERLIST_LOCATION"] = str(self.MASTERLIST_LOCATION)
+    #    os.environ["PROJECT_ROOT"] = str(self.PROJECT_ROOT) #str(self._toolfolder.parent)
+    #    os.environ["MASTERLIST_LOCATION"] = str(self.MASTERLIST_LOCATION)
         #os.environ["CONFIG_LOCATION"] = str(self.CONFIG_LOCATION)
     
     def _get_project_root(self,path_to_folder:Path):
@@ -286,83 +296,34 @@ class Ctfcli():
             # TODO: make function to check if they put it next to
             #  an actual repository fitting the spec
         try:
-            if Path(self.CHALLENGEREPOROOT).is_dir():
+            # challenge folder
+            if Path(self.CHALLENGEREPOROOT).is_dir() and self.CHALLENGEREPOROOT.stem == "challenge":
                 yellowboldprint("[+] Challenge Folder Found, presuming to be repository location")
                 # the repository is the directory above this, containing all the things
             else:
                 yellowboldprint("[!] Challenge folder not found!")
+                raise Exception
         except Exception:
             errorlogger("[-] Error, cannot find repository! ")
 
-
-    def _set_locations():
-        '''
-        validates the locations of important items
-        Sets variables with the locations of the following items:
-        masterlist.yaml
-        challenges directory
-        config folder
-        '''
-        debuggreen("Setting locations of all important items")
-        #################################################################
-        # Setting location of challenges folder
-        #################################################################
-        # set var to indicate folder hierarchy
-        onelevelup = self._toolfolder.parent
-        debugyellow(f" one folder up : {onelevelup}")
-        # if a folder named challenges is in the directory next to this one
-        greenprint("[+] Looking for challenges folder")
-        try:
-            for item in os.listdir(onelevelup):
-                debugyellow(f"itterating - directory listing item: {item}")
-                if os.path.isdir(item) and item == "challenges":
-                    yellowboldprint("[+] Challenge Folder Found alongside tool folder, presuming to be repository location")
-                    # set var to challenge folder location
-                    self._challengesfolder = os.path.join(onelevelup, "challenges")
-                    # set var to repository root
-                    self._reporoot = onelevelup
-                    debuggreen(f"challenges folder at {self._challengesfolder}")
-                    debuggreen(f"repository root folder at {self._reporoot}")
-                    break
-                # not the droid/folder we are looking for
-                elif (os.path.isdir(item) and item != "challenges"):
-                    debugyellow(f"folder is not repository folder named 'challenges' : {item}")
-                    continue
-                # not even a droid/folder
-                elif not os.path.isdir(item):
-                    debugyellow(f"item is not folder or named challenges : {item}")
-                    continue
-                # folder one level up is empty?
-                else:
-                    yellowboldprint("[!] Challenge folder not found Alongside tool folder, Exiting program!")
-                    raise Exception
-        except Exception:
-            errorlogger("[-] Error, cannot find repository! ")
-
-
-    def _getenv(self):
+    #def _getenv(self):
         '''
         FUTURE
         Retrieves neceessary env vars if running in submodule mode
         all variables should be a Path to a location nearby
         '''
-        debugyellow("Loading the following variables from the shell environment")
-        for var_name in self.important_env_list:
-            debugblue(var_name)
-        for each in self.important_env_list:
-            debugyellow("setting  env")
-            debugyellow(f"SETTING {each} as {os.getenv(each)}")
-            setattr(self,each, Path(os.getenv(each)))
+    #    debugyellow("Loading the following variables from the shell environment")
+    #    for var_name in self.important_env_list:
+    #        debugblue(var_name)
+    #    for each in self.important_env_list:
+    #        debugyellow("setting  env")
+    #        debugyellow(f"SETTING {each} as {os.getenv(each)}")
+    #        setattr(self,each, Path(os.getenv(each)))
  
 def main():
     '''wat'''
-    commands = {
-        "ctfcli"     : Ctfcli,
-        "set_root"   : SetPaths
-        #"load_config": LoadConfig
-        }
     #fire.Fire(Ctfcli)
-    fire.Fire(commands)
+    fire.Fire(Ctfcli)
 
 if __name__ == "__main__":
     main()
