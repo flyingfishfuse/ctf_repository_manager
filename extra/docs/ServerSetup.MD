@@ -33,6 +33,18 @@
 
     TODO
 
+# Setup network
+
+```bash
+#/etc/hosts
+127.0.0.1  your_hostname_here your_hostname_here.tld cadvisor.moopbox.wtf prometheus.moopbox.wtf ctfd.moopbox.wtf grafana.moopbox.wtf 
+127.0.0.11 your_hostname_here your_hostname_here.tld cadvisor.moopbox.wtf prometheus.moopbox.wtf ctfd.moopbox.wtf grafana.moopbox.wtf nodeexporter.moopbox.wtf 
+```
+
+```bash
+docker network create internal
+docker network create net
+```
 
 ## Setup FQDN in Linux (debian Buster)
     

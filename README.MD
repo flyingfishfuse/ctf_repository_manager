@@ -141,104 +141,26 @@ You can issue the following commands:
 
 The KUBECONFIG environment variable holds a list of kubeconfig files. 
 For Linux and Mac, the list is colon-delimited. 
-    For Windows, the list is semicolon-delimited. 
+For Windows, the list is semicolon-delimited. 
 
-    The KUBECONFIG environment variable is not required. 
-    If the KUBECONFIG environment variable doesn't exist, 
-    kubectl uses the default kubeconfig file, $HOME/.kube/config.
+The KUBECONFIG environment variable is not required. 
+If the KUBECONFIG environment variable doesn't exist, 
+kubectl uses the default kubeconfig file, $HOME/.kube/config.
 
-    If the KUBECONFIG environment variable does exist, 
-    kubectl uses an effective configuration that is the result of 
-    merging the files listed in the KUBECONFIG environment variable.
-# PROGRESS
+If the KUBECONFIG environment variable does exist, 
+kubectl uses an effective configuration that is the result of 
+merging the files listed in the KUBECONFIG environment variable.
 
-        ctfcli almost completely rewritten, it uploads challenges, and creates a 
-        handout.tar.gz and solution.tar.gz and a masterlist.yaml of all the challenges
-
-        installer semi-funcitonal
-
-        ctfd server operational
-
-        nginx proxy still not scrubbing port number from uri, I think this is a docker
-        specific issue and I would appreciate assistance in the matter
-
-## Important Information
-
-        -sandboxy
-            the docker-compose file directory containing the data created by
-            CTFd and the users of the platform (mysql,cache,etc) to be packed 
-            up and distributed to a replacment system in the event of a server change
-            
-            /containers
-                contains the folders holding dockerfiles and resources for each Container
-
-                /CTFd
-                    Contains the build data for the ctfd docker container
-                
-                /nginx
-                    ditto
-
-            /data 
-                where the portable data is placed (mysql/redis/ctfd/nginx/etc)
-
-                /certbot/conf/live
-                    This is where your certs are, keep an eye on this folder!
-
-                /CTFd/Challenges
-                    The challenge repository, managed by a rewrite of ctfcli
-
-    the important files to start with for development are 
-        - main-compose.yaml
-        - haxnet.yaml
-               
-       The "containers" directory has each folder as a seperate docker box
-       with its own dockerfile and everything necessary in that folder as 
-       the build dir
-
-        for linting/dev, you edit:
-            /config/nginx_template.conf
-
-        then you copy that to:
-            /containers/nginx/nginx.conf.template
-
-        finally, this file is where you set configuration parameters for the 
-        environment:
-            ./.env
-
-        ! letsencrypt should be used only if a domain name is available !
+    ! letsencrypt should be used only if a domain name is available !
                 run init_letsencrypt.sh FIRST AND ONLY ONCE!
-        ! letsencrypt should be used only if a domain name is available !
+    ! letsencrypt should be used only if a domain name is available !
 
-        haxnet.yaml is for severe sandboxing
-        will contain
-            debian cnc
-            linux databases
-            possibly windows hosts?
-                must check legality
-
-        all of them exploitable
-    
-    QUESTIONS FOR THE ADMIN:
-        Can I install the following softwares:
-            vagrant
-            packer
-            docker
-            docker-compose
-            kubernetes
-            nsjail
-            
-        TODO:
-            - add option to start.sh to include/build/init
-                https://echoctf.red/
-                https://github.com/echoCTF/echoCTF.RED
             
             - moar ctfd challenges here
                 https://github.com/bsidessf
 
             - oohhh shiny!
                 https://github.com/cliffe/SecGen
-
-        we need more https://asmen.icopy.site/awesome/awesome-ctf/
 
         How to setup your public hostname for letsencrypt to function
             https://kerneltalks.com/howto/how-to-setup-domain-name-in-linux-server/
