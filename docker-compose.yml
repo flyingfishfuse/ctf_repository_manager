@@ -242,14 +242,17 @@ services:
       #- "GF_INSTALL_PLUGINS=grafana-piechart-panel"
     networks:
       net:
+    #orts:
+    #  - 3000:3000
     volumes:
       - "grafana_data:/var/lib/grafana"
       - "./config/grafana/provisioning/:/etc/grafana/provisioning/"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.moopbox.wtf`) && PathPrefix(`/grafana`)"
-      - "traefik.http.routers.grafana.middlewares=grafanaddprefix"
-      - "traefik.http.middlewares.grafanaaddprefix.addprefix.prefix=/path"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.moopbox.wtf`)"
+      # && PathPrefix(`/grafana`)"
+     #- "traefik.http.routers.grafana.middlewares=grafanaddprefix"
+     # - "traefik.http.middlewares.grafanaaddprefix.addprefix.prefix=/path"
       #- "traefik.http.routers.grafana.rule=Host(`grafana.moopbox.wtf`)""
       #- "traefik.http.routers.grafana.rule=Path(`/grafana`)"
       - "traefik.http.routers.grafana.entrypoints=web"

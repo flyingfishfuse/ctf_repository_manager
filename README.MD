@@ -11,15 +11,6 @@
     in that time I forgot where the hell I was at what the hell I was doing so please
     excuse the mess while I fix the borked-ed-ness
 
-
-# Table Of Contents
-
-    until the start.sh script is finished, this is the official documentation
-    important data
-    system prep
-    KCTF INSTRUCTIONS
-    NETWORK LAYOUT 
-                    
 # DAILY PLAN
 
     finish various functions
@@ -37,7 +28,7 @@
 
 # CTFCLI
     to create an initial repository,you must structure it as the following
-
+```
         folder: ctfcli tool
         folder: data
             folder: CTFd
@@ -66,14 +57,13 @@
                     handout file/s
                 soution folder
                     solution file/s
-
+```
 # usage
 
 If the infrastructure or repository need to change, a new masterlist needs to be created.
 
-
-    1. if you are running the tool outside of the context of this repository (custom repo) or not 
-    in the same directory as the challenge folder you need to use the commands :
+1. if you are running the tool outside of the context of this repository (custom repo) or not 
+in the same directory as the challenge folder you need to use the commands :
 
 ```bash
 # maybe not these anymore?
@@ -84,74 +74,73 @@ ctfcli init --config=<full_path_goes_here>
 
 ```
 
-    2. This will still require the challenges be organized according to the specification above
-    
-    3. The first time you run this tool it will ALWAYS look for a config file NEXT to the 
-    tool folder in the SAME directory as the tool folder itself. If one is not present it will
-    exit without running
-    provide a full system path to the config file by setting the env variable
+This will scan the folder and generate a masterfile.yaml of the challenge contents
+It creates a yaml representation of python code for tracking, validation and to "load"
+the structure of the ctf repository into the application for later use without requiring 
+scanning a second time. if anything changes in the folder with the challenges this app
+will know and ignore it until scanned again.
+
+---
+2. This will still require the challenges be organized according to the specification above
+---
+
+3. The first time you run this tool it will ALWAYS look for a config file NEXT to the 
+tool folder in the SAME directory as the tool folder itself. If one is not present it will
+exit without running
+
+The masterlist.yaml has already been generated for this repo and the only thing you need to do
+is change the contents of the config and run the commands:
 
 ```bash
-# maybe not these anymore?
-#export CONFIG_LOCATION=<full_path_goes_here>
+python3 ./ctfcli syncrepository
 
 ```
-    
-    4. This software expects that the deployment data is alongside the tool so 
-    please have a look around the project and become familiar with it so you
-    may tailor it to your needs. The reason for this is because the `start.sh`
-    script will zip and encode the whole project into base64 then append it to 
-    itself for easy transmission. This behavior is similar to malware movement
-    so be sure your AV/IPS does not delete it :p
+---
 
-    5. If you are just planning on using this software as-is, you run the commands:
+4. This software expects that the deployment data is alongside the tool so 
+please have a look around the project and become familiar with it so you
+may tailor it to your needs. The reason for this is because the `start.sh`
+script will zip and encode the whole project into base64 then append it to 
+itself for easy transmission. This behavior is similar to malware movement
+so be sure your AV/IPS does not delete it :p
+---
+
+5. If you are just planning on using this software as-is, you run the commands:
+
  ```bash
 chmod +x ./start.sh
 ./start.sh deploy
-
 # then you run the ctfcli tool
-
 ctfcli help
-```   
-
-    If you have changed anything in the repository (added/removed), The first time you run the tool
-    you must use the command:
-
-    `ctfcli repo init`
-
-    This will scan the folder and generate a masterfile.yaml of the challenge contents
-    It creates a yaml representation of python code for tracking, validation and to "load"
-    the structure of the ctf repository into the application for later use without requiring 
-    scanning a second time. if anything changes in the folder with the challenges this app
-    will know and ignore it until scanned again.
-
-
+```
+---
 # kubernetes config
 
-    kubernetes config information is loaded from the shell environment with the following code:
 
-    ```python
-    kube_config.load_kube_config(
+kubernetes config information is loaded from the shell environment with the following code:
+
+```python
+kube_config.load_kube_config(
         config_file=os.environ.get("KUBECONFIG", KUBE_CONFIG_PATH),
         context=os.environ.get("KUBECONTEXT"),
     )
-    ```
-    to change the directory you must change the environment variable
+```
+to change the directory you must change the environment variable
     
-    See here: https://github.com/kubernetes-incubator/client-python/blob/436351b027df2673869ee00e0ff5589e6b3e2b7d/kubernetes/config/kube_config.py#L283
+See here: https://github.com/kubernetes-incubator/client-python/blob/436351b027df2673869ee00e0ff5589e6b3e2b7d/kubernetes/config/kube_config.py#L283
 
-    config.load_kube_config(context='some context')
+config.load_kube_config(context='some context')
 
-    If you are not familiar with Kubernetes contexts, Kubernetes stores your configuration under ~/.kube/config (default location). In it you will find context definition for every cluster you may have access to. A field called current-context defines your current context.
+If you are not familiar with Kubernetes contexts, Kubernetes stores your configuration under ~/.kube/config (default location). In it you will find context definition for every cluster you may have access to. A field called current-context defines your current context.
 
-    You can issue the following commands:
+You can issue the following commands:
     
     kubectl config current-context to see the current context
     
     kubectl config view to view all the configuration
 
-    The KUBECONFIG environment variable holds a list of kubeconfig files. 
-    For Linux and Mac, the list is colon-delimited. 
+The KUBECONFIG environment variable holds a list of kubeconfig files. 
+For Linux and Mac, the list is colon-delimited. 
     For Windows, the list is semicolon-delimited. 
 
     The KUBECONFIG environment variable is not required. 
