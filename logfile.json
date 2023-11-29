@@ -1,0 +1,29 @@
+raefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="Static configuration loaded {\"global\":{\"checkNewVersion\":true},\"serversTransport\":{\"maxIdleConnsPerHost\":200},\"en
+tryPoints\":{\"metrics\":{\"address\":\":8082\",\"transport\":{\"lifeCycle\":{\"graceTimeOut\":\"10s\"},\"respondingTimeouts\":{\"idleTimeout\":\"3m0s\"}},\"forwardedHeaders\":{},\"http\":
+{},\"http2\":{\"maxConcurrentStreams\":250},\"udp\":{\"timeout\":\"3s\"}},\"traefik\":{\"address\":\":8080\",\"transport\":{\"lifeCycle\":{\"graceTimeOut\":\"10s\"},\"respondingTimeouts\":
+{\"idleTimeout\":\"3m0s\"}},\"forwardedHeaders\":{},\"http\":{},\"http2\":{\"maxConcurrentStreams\":250},\"udp\":{\"timeout\":\"3s\"}},\"web\":{\"address\":\":80\",\"transport\":{\"lifeCyc
+le\":{\"graceTimeOut\":\"10s\"},\"respondingTimeouts\":{\"idleTimeout\":\"3m0s\"}},\"forwardedHeaders\":{},\"http\":{},\"http2\":{\"maxConcurrentStreams\":250},\"udp\":{\"timeout\":\"3s\"}
+}},\"providers\":{\"providersThrottleDuration\":\"2s\",\"docker\":{\"watch\":true,\"endpoint\":\"unix:///var/run/docker.sock\",\"defaultRule\":\"Host(`{{ normalize .Name }}`)\",\"exposedBy
+Default\":true,\"swarmModeRefreshSeconds\":\"15s\"}},\"api\":{\"insecure\":true,\"dashboard\":true},\"metrics\":{\"prometheus\":{\"buckets\":[0.1,0.3,1.2,5],\"addEntryPointsLabels\":true,\
+"addRoutersLabels\":true,\"addServicesLabels\":true,\"entryPoint\":\"metrics\",\"manualRouting\":true}},\"log\":{\"level\":\"DEBUG\",\"filePath\":\"/var/log/traefik.log\",\"format\":\"comm
+on\"}}"
+traefik       | time="2023-11-29T09:02:59-05:00" level=info msg="\nStats collection is disabled.\nHelp us improve Traefik by turning this feature on :)\nMore details on: https://doc.traefi
+k.io/traefik/contributing/data-collection/\n"
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="Configured Prometheus metrics" metricsProviderName=prometheus
+traefik       | time="2023-11-29T09:02:59-05:00" level=info msg="Starting provider aggregator aggregator.ProviderAggregator"
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="Starting TCP Server" entryPointName=metrics
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="Starting TCP Server" entryPointName=web
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="Starting TCP Server" entryPointName=traefik
+traefik       | time="2023-11-29T09:02:59-05:00" level=info msg="Starting provider *traefik.Provider"
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="*traefik.Provider provider configuration: {}"
+traefik       | time="2023-11-29T09:02:59-05:00" level=info msg="Starting provider *acme.ChallengeTLSALPN"
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="*acme.ChallengeTLSALPN provider configuration: {}"
+traefik       | time="2023-11-29T09:02:59-05:00" level=info msg="Starting provider *docker.Provider"
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="*docker.Provider provider configuration: {\"watch\":true,\"endpoint\":\"unix:///var/run/docker.sock\",\"defaultRule\":\"Ho
+st(`{{ normalize .Name }}`)\",\"exposedByDefault\":true,\"swarmModeRefreshSeconds\":\"15s\"}"
+traefik       | time="2023-11-29T09:02:59-05:00" level=debug msg="Configuration received: {\"http\":{\"routers\":{\"api\":{\"entryPoints\":[\"traefik\"],\"service\":\"api@internal\",\"rule
+\":\"PathPrefix(`/api`)\",\"priority\":2147483646},\"dashboard\":{\"entryPoints\":[\"traefik\"],\"middlewares\":[\"dashboard_redirect@internal\",\"dashboard_stripprefix@internal\"],\"servi
+ce\":\"dashboard@internal\",\"rule\":\"PathPrefix(`/`)\",\"priority\":2147483645}},\"services\":{\"api\":{},\"dashboard\":{},\"noop\":{},\"prometheus\":{}},\"middlewares\":{\"dashboard_red
+irect\":{\"redirectRegex\":{\"regex\":\"^(http:\\\\/\\\\/(\\\\[[\\\\w:.]+\\\\]|[\\\\w\\\\._-]+)(:\\\\d+)?)\\\\/$\",\"replacement\":\"${1}/dashboard/\",\"permanent\":true}},\"dashboard_stri
+pprefix\":{\"stripPrefix\":{\"prefixes\":[\"/dashboard/\",\"/dashboard\"]}}},\"serversTransports\":{\"default\":{\"maxIdleConnsPerHost\":200}}},\"tcp\":{},\"udp\":{},\"tls\":{}}" providerN
+ame=internal

@@ -40,8 +40,8 @@ class APIHandler(requests.Session):
         token (str): The authentication Token given in the settings page of the admin panel on the CTFd server
     """
     def __init__(self,
-            url:str=None,
-            token:str=None,
+            url:str|None=None,
+            token:str|None=None,
             APIPREFIX:str="/api/v1/"
             ):
         #https://server.host.net/ctfd/
@@ -59,7 +59,7 @@ class APIHandler(requests.Session):
             "_submit": "Submit",
             "nonce": str
             }
-        self.synchedchallengelist:dict = None
+        self.synchedchallengelist: dict | None = None
         super().__init__()
 
     def _setheaders(self):
@@ -75,17 +75,17 @@ class APIHandler(requests.Session):
                     'Content-Transfer-Encoding': 'application/gzip',
                     #'Accept-Language': 'en-US,en;q=0.9' 
                 }
-        debuggreen("[DEBUG] Setting Headers to STEALTH MODE!")
+        debuggreen("Setting Headers to STEALTH MODE!")
         self.headers.update(headers)
-        debugblue(f"[DEBUG] {self.headers}")
+        debugblue(f"{self.headers}")
 
     def _settoken(self,token):
         """
         Sets the Authorization field in the headers with a token
         also sets self.token
         """
-        debuggreen(f"[DEBUG] Setting Token for auth")
-        debuggreen(f"[DEBUG] {token}")
+        debuggreen(f"Setting Token for auth")
+        debuggreen(f"{token}")
         self.headers.update({"Authorization": f"Token {token}"})
         self.token = token
 
@@ -106,11 +106,11 @@ class APIHandler(requests.Session):
         # if there is a token provided
         if authdict.get('token') != None:
             self.token = authdict.get('token')
-            debuggreen(f"[DEBUG] New Header section")
-            debugblue(f"[DEBUG] Authorization : Token {self.token}")
+            debuggreen(f"New Header section")
+            debugblue(f"Authorization : Token {self.token}")
             self.headers.update({"Authorization": f"Token {self.token}"})
         # everything else
-        debugblue(f"[DEBUG] contents of Authdict : {authdict}")
+        debugblue(f"contents of Authdict : {authdict}")
         for key in authdict:
             setattr(self,key,authdict.get(key))
 
@@ -118,8 +118,10 @@ class APIHandler(requests.Session):
         """
         Secondary code flow to obtain authentication
         Can only be used post setup
+
+        how the heck did I miss this loop, brb fixing it
         """
-        debuggreen("[DEBUG] Attempting to obtain auth token via login")
+        debuggreen("Attempting to obtain auth token via login")
         self._obtainauthtoken(self.username,self.password)
         #return self.gettoken()
 
@@ -134,7 +136,7 @@ class APIHandler(requests.Session):
                 self.schema = schema
                 self.route = f"{schema}://{self.url}/{tag}"
                 if admin == True:
-                    debuggreen(f"[DEBUG] Route {self.route}?view=admin")
+                    debuggreen(f"Route {self.route}?view=admin")
                     self.route = f"{self.route}?view=admin"
                     return f"{self.route}"
                 else:
@@ -198,7 +200,7 @@ class APIHandler(requests.Session):
             username    (str): username as string
             password    (str): password as string
         """
-        debuggreen("[DEBUG] Start of APISession.authtoserver()")
+        debuggreen("Start of APISession.authtoserver()")
         #apisession = APISession()
         # template for authentication packet
         # these should be set already if _setauth was used
@@ -211,7 +213,7 @@ class APIHandler(requests.Session):
             #    try:
             #        token = getattr(self,"token")
             #    except:
-                debugred("[DEBUG] APISession.authtoserver() missing critical auth information")
+                debugred("APISession.authtoserver() missing critical auth information")
                 raise Exception
         else:
             name = username
@@ -228,15 +230,15 @@ class APIHandler(requests.Session):
         ################################################################
         # get the login form
         self.loginurl = self._geturi('login')
-        debuggreen(f"[DEBUG] Attempting to login to {self.loginurl} ")
+        debuggreen(f"Attempting to login to {self.loginurl} ")
         self.apiresponse = self.get(self._geturi('login'), allow_redirects=False)
-        debugblue(f"[DEBUG] API RESPONSE : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE : {self.apiresponse.status_code}")
         # if it is not a 200 OK and its a setup, pre install path
         # the server was ok and responded with login
         if self.apiresponse.status_code == 200:
             # Grab the nonce
             self.nonce = self.apiresponse.text.split("csrfNonce': \"")[1].split('"')[0]
-            debuggreen(f"[DEBUG] Initial Nonce: {self.nonce}")
+            debuggreen(f"Initial Nonce: {self.nonce}")
             self.authtemplate['nonce'] = self.nonce
         elif self._there_was_an_error(self.apiresponse.status_code):
             if self.apiresponse.status_code == 302 and self.apiresponse.headers["Location"].endswith("/setup"):
@@ -244,12 +246,12 @@ class APIHandler(requests.Session):
                 raise Exception
         # make the api request to the login page
         # this logs us in as admin
-        debuggreen(f"[DEBUG] sending POST to Login URL {self.authpayload}")
+        debuggreen(f"sending POST to Login URL {self.authpayload}")
         self.apiresponse = self.post(
             url=self._geturi("login"),
             data = self.authtemplate
             )#,allow_redirects=False,)
-        debugblue(f"[DEBUG] API RESPONSE : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE : {self.apiresponse.status_code}")
         if self._there_was_an_error( self.apiresponse.status_code):# or (not self.apiresponse.headers["Location"].endswith("/challenges")):
             errorlogger('[-] invalid login credentials')
             raise Exception
@@ -264,23 +266,23 @@ class APIHandler(requests.Session):
         """
         # get settings page in admin panel
         self.apiresponse = self.get(self._geturi("settings",admin=True))
-        debugblue(f"[DEBUG] API RESPONSE : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE : {self.apiresponse.status_code}")
         self.nonce = self.apiresponse.text.split("csrfNonce': \"")[1].split('"')[0]
-        debugblue(f"[DEBUG] Admin Nonce: {self.nonce}")
+        debugblue(f"Admin Nonce: {self.nonce}")
         # set csrf token in headers
-        debuggreen(f"[DEBUG] Setting headers with admin nonce")
+        debuggreen(f"Setting headers with admin nonce")
         self.headers.update({"CSRF-Token":self.nonce})
-        debugblue(f"[DEBUG] request headers:")
-        debugblue(f"[DEBUG] {self.headers}")
-        debuggreen(f"[DEBUG] Requesting Token from Admin Panel")
+        debugblue(f"request headers:")
+        debugblue(f"{self.headers}")
+        debuggreen(f"Requesting Token from Admin Panel")
         self.apiresponse = self.post(url=self._getroute("tokens",admin=True),json={},headers ={"CSRF-Token": self.nonce})
-        debugblue(f"[DEBUG] API RESPONSE : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE : {self.apiresponse.status_code}")
         if self._there_was_an_error (self.apiresponse.status_code) or (not self.apiresponse.json()["success"]):
             errorlogger("[-] Token generation failed")
             raise Exception
         self.token = self.apiresponse.json()["data"]["value"]
-        debugblue(f"[DEBUG] API STATUS  : {self.apiresponse.status_code}")
-        debugblue(f"[DEBUG] API RESPONSE: {self.apiresponse.json()}")
+        debugblue(f"API STATUS  : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE: {self.apiresponse.json()}")
         
     def login(self, username:str=None, password:str=None):
         """
@@ -290,20 +292,20 @@ class APIHandler(requests.Session):
         """
         # get login page
         self.loginurl = self._geturi('login')
-        debuggreen(f"[DEBUG] Attempting to login to {self.loginurl} ")
+        debuggreen(f"Attempting to login to {self.loginurl} ")
         self.apiresponse = self.get(url=self.loginurl, allow_redirects=True)
-        debugblue(f"[DEBUG] API RESPONSE : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE : {self.apiresponse.status_code}")
         # set auth fields
         self.authpayload['name'] = username
         self.authpayload['password'] = password
         # set initial interaction nonce
         self.nonce = self.apiresponse.text.split("csrfNonce': \"")[1].split('"')[0]
-        debuggreen(f"[DEBUG] Initial Nonce: {self.nonce}")
+        debuggreen(f"Initial Nonce: {self.nonce}")
         self.authpayload['nonce'] = self.nonce
         # send POST to Login URL
-        debuggreen(f"[DEBUG] sending POST to Login URL {self.authpayload}")
+        debuggreen(f"sending POST to Login URL {self.authpayload}")
         self.apiresponse = self.post(url=self._getroute('login'),data = self.authpayload)#,allow_redirects=False)
-        debugblue(f"[DEBUG] API RESPONSE : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE : {self.apiresponse.status_code}")
         # now look down!
     # this gets called next, so its declared after to keep track
     def gettoken(self):
@@ -314,22 +316,22 @@ class APIHandler(requests.Session):
         """
         # grab admin login nonce
         self.nonce = self.apiresponse.text.split("csrfNonce': \"")[1].split('"')[0]
-        debugblue(f"[DEBUG] Admin Nonce: {self.nonce}")
+        debugblue(f"Admin Nonce: {self.nonce}")
         # set csrf token in headers
-        debuggreen(f"[DEBUG] Setting headers with admin nonce")
+        debuggreen(f"Setting headers with admin nonce")
         self.headers.update({"CSRF-Token":self.nonce})
-        debugblue(f"[DEBUG] request headers:")
-        debugblue(f"[DEBUG] {self.headers}")
+        debugblue(f"request headers:")
+        debugblue(f"{self.headers}")
 
         # POST to settings URL to generate token
-        debuggreen(f"[DEBUG] POST to settings URL to generate token")
+        debuggreen(f"POST to settings URL to generate token")
         self.apiresponse = self.get(url=self.settingsurl,json={})
-        debugblue(f"[DEBUG] API RESPONSE : {self.apiresponse.status_code}")        
+        debugblue(f"API RESPONSE : {self.apiresponse.status_code}")        
         # POST to tokensurl to obtain Token
-        debuggreen(f"[DEBUG] POST to tokensurl to obtain Token")
+        debuggreen(f"POST to tokensurl to obtain Token")
         self.apiresponse = self.post(url=self._getroute('tokens'),json={})
-        debugblue(f"[DEBUG] API STATUS  : {self.apiresponse.status_code}")
-        debugblue(f"[DEBUG] API RESPONSE: {self.apiresponse.json()}")
+        debugblue(f"API STATUS  : {self.apiresponse.status_code}")
+        debugblue(f"API RESPONSE: {self.apiresponse.json()}")
         # Place token into headers for sessions to interact with WRITE permissions
         self.token = self.apiresponse.json()["data"]["value"]
         return self.token
@@ -342,7 +344,7 @@ class APIHandler(requests.Session):
         set3 = [500]
         if responsecode in set1 :
             errorlogger(f"[-] Server side error - No Resource Available in REST response - Error Code {responsecode}")
-            debugblue(f"[DEBUG] Server side error - No Resource Available in REST response - Error Code {responsecode}")
+            debugblue(f"Server side error - No Resource Available in REST response - Error Code {responsecode}")
             return True # "[-] Server side error - No resource Available in REST response"
         if responsecode in set2:
             errorlogger("[-] User error in Request - Error Code {}".format(responsecode))
@@ -406,12 +408,12 @@ class APIHandler(requests.Session):
         Returns:
             synchedchallengelist    (dict): list of all challenges installed in server
         """
-        debuggreen("[DEBUG] getting list of all challenges")
+        debuggreen("getting list of all challenges")
         endpoint = self._getroute('challenges',admin=True)
         self._setheaders()
         challengedata = self.get(url = endpoint, json=True)
         self.synchedchallengelist = challengedata.json()['data']
-        debuggreen(f"[DEBUG] {self.synchedchallengelist}")
+        debuggreen(f"{self.synchedchallengelist}")
         return self.synchedchallengelist
 
     def _createbasechallenge(self,jsonpayload:dict):
@@ -494,8 +496,8 @@ class APIHandler(requests.Session):
         data = {"requirements": {"prerequisites": required_challenges}}
         self.apiresponse = self.patch(self._getroute('challenges') + str(challenge_id), json=data)
         self.apiresponse.raise_for_status()
-        debugblue("[DEBUG] API RESPONSE CODE:")
-        debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+        debugblue("API RESPONSE CODE:")
+        debugblue(f"{self.apiresponse.status_code}")
 
     def _processtags(self, challenge_id:int, jsonpayload:dict) -> requests.Response:
         '''
@@ -511,8 +513,8 @@ class APIHandler(requests.Session):
                         }
                     )
             self.apiresponse.raise_for_status()
-        debugblue("[DEBUG] API RESPONSE CODE:")
-        debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+        debugblue("API RESPONSE CODE:")
+        debugblue(f"{self.apiresponse.status_code}")
 
     def _processhints(self,challenge_id:int,hints):
         '''
@@ -545,27 +547,27 @@ class APIHandler(requests.Session):
         #make request with hints template
         #self.apiresponse = self.post(self._getroute('hints'), json=self.hintstempl)
         self.apiresponse.raise_for_status()
-        debugblue("[DEBUG] API RESPONSE CODE:")
-        debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+        debugblue("API RESPONSE CODE:")
+        debugblue(f"{self.apiresponse.status_code}")
 
     def _processtopics(self, jsonpayload:dict):
         '''
         process hints for the challenge
         '''
-        debuggreen("[DEBUG] Processing topics")
+        debuggreen("Processing topics")
         self.topictempl = topictemplate()
         for topic in jsonpayload.get("topics"):
             self.topictempl['value'] = topic
             self.apiresponse = self.post(self._getroute("topics"),json=self.topictempl)
             self.apiresponse.raise_for_status()
-            debugblue("[DEBUG] API RESPONSE CODE:")
-            debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+            debugblue("API RESPONSE CODE:")
+            debugblue(f"{self.apiresponse.status_code}")
 
     def _processflags(self, challenge_id:int, jsonpayload:dict) -> requests.Response:
         '''
         process hints for the challenge
         '''
-        debuggreen("[DEBUG] Processing Flags")
+        debuggreen("Processing Flags")
         try:
             try:
                 flags =  jsonpayload.pop("flags")
@@ -576,57 +578,57 @@ class APIHandler(requests.Session):
 
         self.flagstempl = flagstemplate()
         self.flagstempl["challenge"] = challenge_id
-        debuggreen(f"[DEBUG] Challenge ID {challenge_id} assigned to flag data")
+        debuggreen(f"Challenge ID {challenge_id} assigned to flag data")
         #single flag inline with yaml tag
         if (type(flags) == str):
             self.flagstempl["content"] = flags
             self.flagstempl["type"] = "static"
-            debugblue(f"[DEBUG] {self.flagstempl}")
+            debugblue(f"{self.flagstempl}")
             self._templatePOST('flags',dict(self.flagstempl),True)
             self.apiresponse.raise_for_status()
-            debugblue("[DEBUG] API RESPONSE CODE:")
-            debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+            debugblue("API RESPONSE CODE:")
+            debugblue(f"{self.apiresponse.status_code}")
             #self.apiresponse = self.post(self._getroute("flags"),json=dict(self.flagstempl),allow_redirects=True)
         #multiple flags on new lines
         elif type(flags) == list:
             for flag in flags:
                 # multiple special flags
                 if type(flag) == dict and 'challenge' in flags.keys():
-                    debugblue(f"[DEBUG] {flag}")
+                    debugblue(f"{flag}")
                     flag["challenge"] = challenge_id
                     self._templatePOST('flags',flag,True)
                 # string flag on new line
                 elif (type(flag) == str):
                     self.flagstempl["content"] = flag
                     self.flagstempl["type"] = "static"
-                    debugblue(f"[DEBUG] {self.flagstempl}")
+                    debugblue(f"{self.flagstempl}")
                     self._templatePOST('flags',dict(self.flagstempl),True)
                 self.apiresponse.raise_for_status()
-                debugblue("[DEBUG] API RESPONSE CODE:")
-                debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+                debugblue("API RESPONSE CODE:")
+                debugblue(f"{self.apiresponse.status_code}")
         # everything from yaml linter should be dicts
         elif type(flags) == dict:
             # if its from a top level, inline, singleton
             if 'challenge' in flags.keys():
-                debugblue(f"[DEBUG] {flags}")
+                debugblue(f"{flags}")
                 flags["challenge"] = challenge_id
                 self._templatePOST('flags',flags,True)
             else:
                 # second layer to catch multiple flags
                 for flag in flags:
                     if 'challenge' in flag.keys():
-                        debugblue(f"[DEBUG] {flag}")
+                        debugblue(f"{flag}")
                         flag["challenge"] = challenge_id
                         self._templatePOST('flags',flag,True)
                         #self.apiresponse = self.post(self._getroute("flags"), json=self.flagstempl, allow_redirects=True)
                         self.apiresponse.raise_for_status()
-                        debugblue("[DEBUG] API RESPONSE CODE:")
-                        debugblue(f"[DEBUG] {self.apiresponse.status_code}")    
+                        debugblue("API RESPONSE CODE:")
+                        debugblue(f"{self.apiresponse.status_code}")    
                     else:
                         raise Exception("Flags do not conform to specification, too many layers detected")
             self.apiresponse.raise_for_status()
-            debugblue("[DEBUG] API RESPONSE CODE:")
-            debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+            debugblue("API RESPONSE CODE:")
+            debugblue(f"{self.apiresponse.status_code}")
 
     def _uploadfiles(self, challenge_id:str=None,file:Path=None):
         """
@@ -637,7 +639,7 @@ class APIHandler(requests.Session):
             file (TarFile): The file to upload to accompany the challenge
         """
         try:
-            debuggreen("[DEBUG] Processing file")
+            debuggreen("Processing file")
             jsonpayload = {                 # this was for a rando idea I had, might still be useful
                 "challenge_id": challenge_id,# if challenge_id is not None else self.challenge_id, 
                 "type": "challenge"
@@ -657,8 +659,8 @@ class APIHandler(requests.Session):
                                          data = jsonpayload, 
                                          verify = False)
             self.apiresponse.raise_for_status()
-            debugblue("[DEBUG] API RESPONSE CODE:")
-            debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+            debugblue("API RESPONSE CODE:")
+            debugblue(f"{self.apiresponse.status_code}")
 
         except Exception as e:
             errorlogger(f"[-] Could not upload file: {e}")
@@ -666,7 +668,7 @@ class APIHandler(requests.Session):
     def deletehintbyid(self, challenge_id):
         # Delete existing hints
         try:
-            debuggreen(f'[DEBUG] Deleting existing hints for challenge {challenge_id}')
+            debuggreen(f'Deleting existing hints for challenge {challenge_id}')
             self.hintstempl = hintstemplate()
             data = {"challenge_id": challenge_id, "type": "challenge"}
             # request a list of all hints
@@ -677,7 +679,7 @@ class APIHandler(requests.Session):
                     hint_id = hint["id"]
                     self.apiresponse = self.delete(self._getroute('hints')+ hint_id, json=True)
                     self.apiresponse.raise_for_status()
-                    debugblue("[DEBUG] API RESPONSE CODE:")
-                    debugblue(f"[DEBUG] {self.apiresponse.status_code}")
+                    debugblue("API RESPONSE CODE:")
+                    debugblue(f"{self.apiresponse.status_code}")
         except Exception:
             errorlogger(f"[-] ERROR: Could not delete hints for challenge ID: {challenge_id} ")

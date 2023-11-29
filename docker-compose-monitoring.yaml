@@ -1,12 +1,13 @@
-version: "3"
-###############################################################################
-####### METRICS
-## Node Exporter : host hardware metrics
-## Cadvisor      : container metrics
-###############################################################################
-########################################
-# Node Exporter configuration
-########################################
+version: "3.9"
+
+  ####### METRICS
+  ## Node Exporter : host hardware metrics
+  ## Cadvisor      : container metrics
+  ###############################################################################
+  ########################################
+  # Node Exporter configuration
+  ########################################
+services:
   node-exporter:
     image: prom/node-exporter:latest
     container_name: nodeexporter
@@ -41,8 +42,6 @@ version: "3"
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
-    depends_on:
-      - cache
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -112,7 +111,6 @@ version: "3"
     hostname: grafana
     domainname: moopbox.wtf
     depends_on:
-      - traefik
       - prometheus
       - node-exporter
     environment:

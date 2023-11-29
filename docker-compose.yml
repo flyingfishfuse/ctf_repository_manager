@@ -24,6 +24,9 @@ services:
      - "--entrypoints.web.address=:80"
      - "--metrics"
      - "--metrics.prometheus=true"
+     - "--log.level=DEBUG"
+     #- "--log.filePath=./containers/traefik/logs/traefik.log"
+     - "--log.filePath=/var/log/traefik.log"
 
      ## Required for explicitly setting domain of router
      - "--metrics.prometheus.manualrouting=true"
@@ -44,6 +47,7 @@ services:
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./container/traefik/logs/traefik.log:/var/log/traefik.log"
     ports:
       - target: 80
         published: 80
@@ -100,7 +104,7 @@ services:
       #  ipv4_address: ${CTFDIP}
     labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.ctfd.rule=Host(`ctfd.moopbox.wtf)`)"
+        - "traefik.http.routers.ctfd.rule=Host(`ctfd.moopbox.wtf`)"
         - "traefik.http.routers.ctfd.entrypoints=web"
         - "traefik.http.routers.ctfd.service=ctfdService"
         - "traefik.http.services.ctfdService.loadBalancer.server.port=8000"
@@ -118,7 +122,165 @@ services:
 #    volumes:
 #      - "/run/docker.sock:/var/run/docker.sock"
 #    restart: unless-stopped
-          
+  ####### METRICS
+  ## Node Exporter : host hardware metrics
+  ## Cadvisor      : container metrics
+  ###############################################################################
+  ########################################
+  # Node Exporter configuration
+  ########################################
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: nodeexporter
+    hostname: nodeexporter
+    domainname: moopbox.wtf
+    restart: unless-stopped
+    networks:
+      internal:
+      net:
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.nodeexporter.rule=Host(`nodeexporter.moopbox.wtf`)"
+        #- "traefik.http.routers.nodeexporter.rule=Path(`/nodeexporter`)"
+        - "traefik.http.routers.nodeexporter.entrypoints=web"
+        - "traefik.http.routers.nodeexporter.service=nodeexporterService"
+        - "traefik.http.services.nodeexporterService.loadBalancer.server.port=8080"
+        #- "traefik.docker.network=internalnetwork"
+        - "traefik.docker.network=net"
+
+########################################
+# Cadvisor configuration
+########################################
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      internal:
+    #ports:
+    #  - 8080:8080
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.cadvisor.rule=Host(`cadvisor.moopbox.wtf`)"
+        #- "traefik.http.routers.cadvisor.rule=Path(`/cadvisor`)"
+        - "traefik.http.routers.cadvisor.entrypoints=web"
+        - "traefik.http.routers.cadvisor.service=cadvisorService"
+        - "traefik.http.services.cadvisorService.loadBalancer.server.port=8080"
+        #- "traefik.docker.network=internalnetwork"
+        - "traefik.docker.network=net"
+###############################################################################
+## Prometheus
+# http://moopbox.wtf:9090/graph
+# http://moopbox.wtf:9090/metrics
+###############################################################################
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    hostname: prometheus
+    domainname: moopbox.wtf
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - node-exporter
+      - cadvisor
+    #restart: unless-stopped
+    volumes:
+      - "./config/prometheus/:/etc/prometheus/"
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    #ports:
+    #  - ${PROMETHEUS_METRICS_ENTRY_PORT}:9090
+    networks:
+      internal:
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.prometheusContainer.rule=Host(`prometheus.moopbox.wtf`)"
+        #- "traefik.http.routers.prometheusContainer.rule=Path(`/prometheus`)"
+        - "traefik.http.routers.prometheusContainer.entrypoints=web"
+        - "traefik.http.routers.prometheusContainer.service=prometheusService" 
+        - "traefik.http.services.prometheusService.loadbalancer.server.port=9090"
+        - "traefik.docker.network=net"
+
+###############################################################################
+## Graphana
+# http://grafana.moopbox.wtf/
+# 
+# when middleware enabled:
+# http://moopbox.wtf/grafana
+###############################################################################
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    hostname: grafana
+    domainname: moopbox.wtf
+    depends_on:
+      - prometheus
+      - node-exporter
+    environment:
+      - "GF_SECURITY_ADMIN_PASSWORD=password"
+      #- "GF_USERS_ALLOW_SIGN_UP=false"
+      - "GF_SERVER_ROOT_URL=http://grafana.moopbox.wtf"
+      - "GF_SERVER_DOMAIN=moopbox"
+      #- "GF_INSTALL_PLUGINS=grafana-piechart-panel"
+    networks:
+      net:
+    volumes:
+      - "grafana_data:/var/lib/grafana"
+      - "./config/grafana/provisioning/:/etc/grafana/provisioning/"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.moopbox.wtf`) && PathPrefix(`/grafana`)"
+      - "traefik.http.routers.grafana.middlewares=grafanaddprefix"
+      - "traefik.http.middlewares.grafanaaddprefix.addprefix.prefix=/path"
+      #- "traefik.http.routers.grafana.rule=Host(`grafana.moopbox.wtf`)""
+      #- "traefik.http.routers.grafana.rule=Path(`/grafana`)"
+      - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.http.routers.grafana.service=grafanaService"
+      - "traefik.http.services.grafanaService.loadBalancer.server.port=3000"
+      #- "traefik.docker.network=internalnetwork"
+      - "traefik.docker.network=net"
+    restart: unless-stopped
+
+################################################################
+## CERTBOT enables ssl for the backend
+# STATUS : NOT TESTED
+#           trying nginx internal certbot first
+#           seems simpler... two commands
+# PROGRESS: nginx + certbot/internal seems to work ok
+################################################################
+#    certbot:
+#      image: certbot/certbot
+#      hostname: certbot
+#      # checks for certbot renewal every 12 hours
+#      #entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+#      depends_on:
+#        - nginx
+#      volumes:
+#        - ${CERTBOTCONFVOLUMES}
+#        - ${CERTBOTDATAVOLUMES}
+#      
+#      networks:
+#        net:
+#          ipv4_address: ${CERTBOTIP}
+#          
 #################################################################
 #                   REDIS SERVER
 #################################################################
@@ -178,3 +340,5 @@ volumes:
   mysql: {}
   ctfd_logs: {}
   ctfd_uploads: {}
+  prometheus_data: {}
+  grafana_data: {}
