@@ -84,19 +84,12 @@ class SandBoxyCTFdLinkage(CtfdLinkageBase):
     And manage the ctfd instance
 
     """
-
-
     def __init__(self,**important_items):
         self.repo = Repository
         self.repofolder:Path = important_items['repository']
         self.masterlistlocation = important_items['masterlist']
         self._ctfdops = SandboxyCTFdRepository(self.repofolder, self.masterlistlocation)
-        #self.gitops = SandboxyGitRepository()
-        #self.config = configobject
-        #self.config = configparser.ConfigParser
-        #self.config = Config(configfilelocation)
 
-# This is a USER function
     def init(self):
         """
         >>> host@server$> python ./ctfcli/ ctfcli init

@@ -12,6 +12,29 @@ PWD = os.path.realpath(".")
 #allowedcategories = crypto,forensics,miscellaneous,osint,reversing,testcat
 #allowdeployments=True
 #masterlistlocation=/home/moop/desktop/work/ctf_deployment_manager/data/CTFd/masterlist.yaml
+
+
+class Test1():
+    # things in the __init__ run when the thing is called
+    def __init__(self):
+        self.msg = "test1"
+
+    def speak(self, blarp:str, test_var:str=""):
+        ''' makes a word be a word babeh'''
+        self.test_var_name = test_var
+        print(blarp)
+        print(self.msg)
+        print(self.test_var_name)
+
+class Test2():
+    def __init__(self):
+        self.msg = "test asdfwqer"
+
+    def speak(self, test_var):
+        print(self.msg)
+
+    def test(self):
+        print("something testy")
 class UITestConfig():
     def __init__(self,file_path:Path= Path("")):
         self.config = configparser.ConfigParser()
@@ -61,36 +84,37 @@ class UITestConfig():
 
 #new_config = UITestConfig(Path("/home/moop/Desktop/work/ctf_repository_manager/extra/tutorials/tutorial_config.cfg"))
 
+class Test3():
+    def __init__(self, **kwargs):
+        print("1: --------------------------------")
+        print("1: Testing Test3: calling from code __init__")
+        for key, value in kwargs.items():
+            print("1: %s == %s" % (key, value))
+        print("1: --------------------------------")    
 
-class Test1():
-    # things in the __init__ run when the thing is called
-    def __init__(self):
-        self.msg = "test1"
-
-    def speak(self, blarp:str, test_var:str=""):
-        ''' makes a word be a word babeh'''
-        self.test_var_name = test_var
-        print(blarp)
-        print(self.msg)
-        print(self.test_var_name)
-
-class Test2():
-    def __init__(self):
-        self.msg = "test asdfwqer"
-
-    def speak(self, test_var):
-        print(self.msg)
-
-    def test(self):
-        print("something testy")
+    def test1(**important_items):
+        print("2: --------------------------------")
+        print("2: Testing Test3: inside Test3.test1()")
+        print("2: " + str(important_items['repository']))
+        print("2: " + str(important_items['masterlist']))
+        print("2: --------------------------------")
+# Driver code
+print("3: --------------------------------")
+print("3: Testing Test3: calling from code top level")
+path1 = Path("./repository").resolve
+path2 = Path("./masterlist").resolve
+Test3(repository=path1, masterlist=path2)
+print("3: --------------------------------")
 
 if __name__ == "__main__":
     #fire.Fire({
     #    "test1"     : Test1,
     #    "test2"   : Test2
     #})
-    fire.Fire(Test2)
-#
+    print("4: --------------------------------")
+    print("4: Testing Test3: calling from CLI")
+    fire.Fire(Test3)
+    print("4: --------------------------------")
 # We can instantiate it as follows: python example.py --name="Sherrerd Hall"
 #Arguments to other functions may be passed positionally or by name using flag syntax.
 #To instantiate a Building and then run the climb_stairs function, the following commands are all valid:

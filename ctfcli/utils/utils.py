@@ -141,14 +141,44 @@ def errorlogger(message):
             )
         )
 
-def get_directory(path:Path, named_item:str):# -> Path:
-    ''' Check if something is a directory with a specific name'''
+def get_directory(path:Path, directory_name:str) -> Path | bool:
+    ''' Check if something is a directory with a specific name
+    Args:
+        path (path): full or relative path to directory expected to contain item
+        directory_name (str): the name of the directory whos existance you wish to determine
+    Returns:
+        Path : Path of the directory, if it exists
+        bool: False is not there
+
+    '''
     try:
         # I got this from Bing AI so there might be issues with it
-        item_of_interest = (lambda x: x[0] if x else exec('assert False, "List is empty"'))([Path(item) for item in path.iterdir() if item.is_dir() and item.stem == named_item])
+        item_of_interest = (lambda x: x[0] if x else exec('assert False, "List is empty"'))([item for item in path.iterdir() if item.is_dir() and item.stem == directory_name])
         return item_of_interest
     except ValueError:
         errorlogger("Directory not in location specified: %s" % path)
+        return False
+
+def check_file_exist(path:Path, item_name:str, item_extension_type:str) -> Path | bool:
+    ''' Check if specified file exists
+    Args:
+        path (path): full or relative path to directory expected to contain item
+        item_name (str): the name of the item whos existance you wish to determine
+        item_extension_type (str): The file extension of the item you wish to determine the existence of
+    Returns:
+        Path : Path of the item, if it exists
+        bool: False is not there
+
+    '''
+    try:
+        # I got this from Bing AI so there might be issues with it
+        item_of_interest = (lambda x: x[0] if x else False)([Path(item) for item in path.iterdir() if item.stem == item_name and item.suffix == item_extension_type])
+        if item_of_interest == True:
+            return item_of_interest
+        else:
+            return False
+    except Exception:
+        errorlogger("Masterlist not in expected location, if you did not move it, check permissions: %s" % path)
         return False
 
 def _processfoldertotarfile(folder:Path,filename='default')-> tarfile.TarFile:

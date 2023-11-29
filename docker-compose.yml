@@ -7,6 +7,7 @@ version: "3"
 ##    ALSO: --gateway --ip-range and --aux-address can be used
 # https://docs.docker.com/engine/reference/commandline/network_create/
 #################################################################
+
 services:
   traefik:
     image: traefik:latest
@@ -14,11 +15,30 @@ services:
     hostname: traefik
     domainname: moopbox.wtf
     command:
-    - "--api.insecure=true"
-    - "--providers.docker=true"
-    - "--providers.docker.exposedbydefault=false"
-    - "--api"
-    - "--entrypoints.web.address=:80"
+     - "--api.insecure=true"
+     - "--api.dashboard=true"
+     - "--providers.docker=true"
+     - "--providers.docker.watch"
+     - "--providers.docker.exposedbydefault=true"
+     - "--api"
+     - "--entrypoints.web.address=:80"
+     - "--metrics"
+     - "--metrics.prometheus=true"
+
+     ## Required for explicitly setting domain of router
+     - "--metrics.prometheus.manualrouting=true"
+
+     # Entry point used to expose metrics.
+     - "--metrics.prometheus.entryPoint=metrics"
+     - "--entryPoints.metrics.address=:8082" 
+
+      #Enable metrics on routers, entrypoints, and services
+     - "--metrics.prometheus.addEntryPointsLabels=true"
+     - "--metrics.prometheus.addrouterslabels=true"
+     - "--metrics.prometheus.addServicesLabels=true"
+
+     # Scarping Timing In Seconds
+     - "--metrics.prometheus.buckets=0.1,0.3,1.2,5.0"
     networks:
       net:
     volumes:
@@ -36,13 +56,17 @@ services:
         - "traefik.http.routers.traefik.service=traefikService"
         - "traefik.http.routers.traefikService.service=api@internal"
         - "traefik.http.services.traefikService.loadBalancer.server.port=8080"
-        - "traefik.docker.network=net"
+        #- "traefik.docker.network=net"
     restart: unless-stopped
 
+#################################################################
+#                   CTFd User Interface
+#################################################################
   ctfd:
     image: ctfd/ctfd
     domainname: moopbox.wtf
     hostname: ctfd
+    container_name: ctfd
     #build:
     #  context: ./containers/ctfd
     #  dockerfile: Dockerfile
@@ -63,8 +87,8 @@ services:
     depends_on:
       - db
 #        - nginx
-    #expose:
-    #  - 8000
+    expose:
+      - 8000
     #ports:
     #  - 8000:8000
       #extra_hosts:
@@ -81,7 +105,20 @@ services:
         - "traefik.http.routers.ctfd.service=ctfdService"
         - "traefik.http.services.ctfdService.loadBalancer.server.port=8000"
         - "traefik.docker.network=net"
-
+#################################################################
+#                   network tools
+#################################################################
+#  parrot:
+#    image: parrotsec/security
+#    hostname: parrot
+#    container_name: parrot
+#    networks:
+#      - internal
+#      - net
+#    volumes:
+#      - "/run/docker.sock:/var/run/docker.sock"
+#    restart: unless-stopped
+          
 #################################################################
 #                   REDIS SERVER
 #################################################################
@@ -91,6 +128,7 @@ services:
         - traefik
         #- nginx
       hostname: cache
+      container_name: cache
       #command: redis-server --appendonly yes
       ports:
         #- ${REDISPORT}:6379
@@ -108,6 +146,7 @@ services:
 #      depends_on:
 #        - nginx
       restart: always
+      container_name: mariadb
       environment:
         - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
         - MYSQL_USER=${MYSQL_USER}

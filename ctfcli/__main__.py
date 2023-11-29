@@ -5,7 +5,7 @@ import os,sys,fire
 from pathlib import Path
 from __main__ import PROJECT_ROOT
 
-from ctfcli.utils.utils import DEBUG,is_named_directory
+from ctfcli.utils.utils import DEBUG,get_directory,check_file_exist
 from ctfcli.utils.utils import errorlogger, yellowboldprint,greenprint,redprint
 from ctfcli.utils.utils import debugblue,debuggreen,debugred,debugyellow
 
@@ -210,17 +210,15 @@ class Ctfcli():
         ''' '''
         # create empty Repository() Object
         # requires location of challenges folder
-        important_items={'repository' : self.CHALLENGEREPOROOT, 
-                'masterlist' : self.MASTERLIST_LOCATION
-                }
-        repo = SandBoxyCTFdLinkage(important_items)
+        important_items={'repository' : self.CHALLENGEREPOROOT, 'masterlist' : self.MASTERLIST_LOCATION }
+        #self.linkage = SandBoxyCTFdLinkage(**important_items)
+        self.linkage = SandBoxyCTFdLinkage(repository=self.CHALLENGEREPOROOT, masterlist=self.MASTERLIST_LOCATION)
         # load config file
-        repo._initconfig(self.config)
+        self.linkage._initconfig(self.config)
+        # bring repository class to higher level scope
+        self.repository = self.linkage.repo 
         # challenge templates, change this to use your own with a randomizer
         #self.TEMPLATESDIR = Path(self.toolfolder , "ctfcli", "templates")
-
-    def set():
-        '''Sets variables for operation'''
 
     def _config_set_check(self,config_location:str):
         '''Checks if user gave custom config location and sets new values accordingly
@@ -234,9 +232,16 @@ class Ctfcli():
             # get full path of location given if relative path supplied as argument
             self.CONFIG_LOCATION = Path(config_location).resolve()
     
-    def _check_masterlist(self):
+    def _check_masterlist(self) -> bool:
         '''Checks if master list is available'''
-
+        masterlist = check_file_exist(self.MASTERLIST_LOCATION,"masterlist",".yaml")
+        if masterlist is not False:
+            greenprint("Masterlist found in expected location")
+            self.masterlist = masterlist
+            return True
+        else:
+            yellowboldprint("Masterlist found in expected location")
+            return False
 
     def start_git(self):
         '''create git repository from $PROJECT_ROOT'''

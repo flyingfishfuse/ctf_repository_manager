@@ -69,8 +69,8 @@
 
 # usage
 
-If the infrastructure or repository need to change, a
-new masterlist needs to be created.
+If the infrastructure or repository need to change, a new masterlist needs to be created.
+
 
     1. if you are running the tool outside of the context of this repository (custom repo) or not 
     in the same directory as the challenge folder you need to use the commands :
