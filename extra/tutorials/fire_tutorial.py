@@ -99,22 +99,23 @@ class Test3():
         print("2: " + str(important_items['masterlist']))
         print("2: --------------------------------")
 # Driver code
-print("3: --------------------------------")
-print("3: Testing Test3: calling from code top level")
-path1 = Path("./repository").resolve
-path2 = Path("./masterlist").resolve
-Test3(repository=path1, masterlist=path2)
-print("3: --------------------------------")
+#print("3: --------------------------------")
+#print("3: Testing Test3: calling from code top level")
+#path1 = Path("./repository").resolve
+#path2 = Path("./masterlist").resolve
+#Test3(repository=path1, masterlist=path2)
+#print("3: --------------------------------")
 
 if __name__ == "__main__":
     #fire.Fire({
     #    "test1"     : Test1,
     #    "test2"   : Test2
     #})
-    print("4: --------------------------------")
-    print("4: Testing Test3: calling from CLI")
-    fire.Fire(Test3)
-    print("4: --------------------------------")
+    #print("4: --------------------------------")
+    #print("4: Testing Test3: calling from CLI")
+    #fire.Fire(Test3)
+    #print("4: --------------------------------")
+    print(str(Path(os.path.realpath(__file__)).parent / "config.cfg"))
 # We can instantiate it as follows: python example.py --name="Sherrerd Hall"
 #Arguments to other functions may be passed positionally or by name using flag syntax.
 #To instantiate a Building and then run the climb_stairs function, the following commands are all valid:

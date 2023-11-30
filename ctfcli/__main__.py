@@ -1,9 +1,11 @@
 from configparser import ConfigParser
-import configparser
+#import configparser
 import os,sys,fire
 #from ctfcli.utils.config import Config
 from pathlib import Path
-from __main__ import PROJECT_ROOT
+
+# old, when used as sub module for deployment
+#from __main__ import PROJECT_ROOT
 
 from ctfcli.utils.utils import DEBUG,get_directory,check_file_exist
 from ctfcli.utils.utils import errorlogger, yellowboldprint,greenprint,redprint
@@ -34,13 +36,15 @@ PWD = os.path.realpath(".")
 # the challenges are located as a subfolder
 global TOOL_LOCATION
 debuggreen("getting path to tool directory")
-TOOL_LOCATION = os.path.realpath(__file__)
+TOOL_LOCATION = Path(os.path.realpath(__file__)).parent
 debugyellow(TOOL_LOCATION)
 
+global PROJECT_ROOT
+PROJECT_ROOT = str
 ###############################################################################
 
 class Setpaths():
-    def __init__(self,config_object:configparser.ConfigParser):
+    def __init__(self,config_object:ConfigParser):
         '''sets various important locations'''
         #self.PROJECT_ROOT = Path
         #self.MASTERLIST_PATH = Path
@@ -84,7 +88,7 @@ class Setpaths():
         for multiple deployments with the same UI'''
         debuggreen("getting path to config location,")
         if config_location == '':
-            self.CONFIG_PATH = Path(PROJECT_ROOT, 'config.cfg')
+            self.CONFIG_PATH = Path(TOOL_LOCATION, 'config.cfg')
             #self.CONFIG_PATH = os.path.realpath(config_location)
         else:
             self.CONFIG_PATH = config_location
@@ -112,7 +116,7 @@ class Ctfcli():
         FIRST RUN, If you have not modified the repository this is not necessary!
         This will generate a Masterlist.yaml file that contains the contents of the 
         repository for loading into the program
-        >>> host@server$> python ./ctfcli/ ctfdrepo init
+        >>> host@server$> python ./ctfcli/ repo init
 
         you should provide token and url when running the tool, it will store 
         token only for a limited time. This is intentional and will not be changed
@@ -197,9 +201,9 @@ class Ctfcli():
         # step 2: set paths
         important_paths          = Setpaths(self.config.config)
         self.CONFIG_LOCATION     = important_paths._set_config_location(Path(important_paths.PROJECT_ROOT, "config.cfg"))
-        self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent))
+        self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
         self.MASTERLIST_LOCATION = important_paths.set_masterlist(Path(important_paths.PROJECT_ROOT, "masterlist.yaml"))
-        self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(Path(PROJECT_ROOT,'/data/CTFd/challenges'))
+        self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(Path(important_paths.PROJECT_ROOT,'/data/CTFd/challenges'))
 
         #self._setenv()
 
