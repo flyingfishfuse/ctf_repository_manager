@@ -5,7 +5,7 @@ from pygments.formatters import TerminalFormatter
 from pygments.lexers import IniLexer, JsonLexer
 import os
 import json
-from ctfcli.utils.utils import greenprint,errorlogger,debuggreen
+from utils.utils import greenprint,errorlogger,debuggreen,debugyellow
 import subprocess
 from pathlib import Path
 
@@ -69,24 +69,12 @@ host@server$> python ./ctfcli/ config <command>
             debuggreen("starting config parser")
             self.config = configparser.ConfigParser()
             self._readconfig(configpath)
+            debugyellow("config contents: \n")
+            debugyellow(self.show_config)
         except Exception:
             errorlogger("unable to load Config file, check permissions on the file and it's location and contents")
 
         #super(self).__init__()
-
-    def _getallowedcategories(self):
-        """
-        Reads allowed categories from config file
-        use during reload when scanning for changes
-        """
-        try:
-            self.allowedcategories = self.config.get('default','categories').split(",")
-            #self.allowedcategories = self['default']['categories'].split(",")
-            return self.allowedcategories
-        except Exception:
-            errorlogger("[-] Failed to read Allowed Categories from Config file --- ")
-            exit()
-
     def _readconfig(self, configpath):
         """
         Reads from config and sets data to class attribute
@@ -132,6 +120,14 @@ host@server$> python ./ctfcli/ config <command>
         except Exception:
             errorlogger("[-] Failed to set authentication information from config file:")
 
+    def show_config(self,configpath):
+        '''outputs contents of config file to STDOUT'''
+        printconfig = self.config.read(configpath)
+        for key in printconfig.sections():
+            print("Section: " + str(key))
+            for item in dict(printconfig.items(key)):
+                print(item + " = " + printconfig.get(section = key, option=item))
+
     def _setauthconfig(self, authdict):#, cfgfile:Path):
         """
         Sets auth information in config file
@@ -170,6 +166,20 @@ host@server$> python ./ctfcli/ config <command>
             self.config.set('default','token',self.token)
         except Exception:
             errorlogger("[-] Failed to store authentication information")
+
+
+    def _getallowedcategories(self):
+        """
+        Reads allowed categories from config file
+        use during reload when scanning for changes
+        """
+        try:
+            self.allowedcategories = self.config.get('default','categories').split(",")
+            #self.allowedcategories = self['default']['categories'].split(",")
+            return self.allowedcategories
+        except Exception:
+            errorlogger("[-] Failed to read Allowed Categories from Config file --- ")
+            exit()
 
     def edit(self, filepath:str,editor="micro"):
         '''

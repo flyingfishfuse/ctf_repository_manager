@@ -60,9 +60,24 @@
 ```
 # usage
 
-If the infrastructure or repository need to change, a new masterlist needs to be created.
+Assumptions:
 
-1. if you are running the tool outside of the context of this repository (custom repo) or not 
+first assumption
+> the folder of the tool itself is in this project with it's particular structure of folders
+    and files, or you are explicitly telling the program where the folder containing a repository
+    is located by changing the relevant line in the config.cfg
+
+second assumption:
+> The config file is either alongside the tool folder (not inside it although that may be an option later)
+or you are explicitly pointing the tool to the location of a config.cfg on runtime
+
+The software will store ALL the information (minus binary information, until V1.x) about the repository
+and configuration in the `masterlist.yaml` upon usage of the `init` command. From that point on if 
+the infrastructure or repository need to change, a new masterlist needs to be created.
+
+commands:
+
+if you are running the tool outside of the context of this repository (custom repo) or not 
 in the same directory as the challenge folder you need to use the commands :
 
 ```bash
@@ -70,7 +85,7 @@ in the same directory as the challenge folder you need to use the commands :
 #export CONFIG_LOCATION=<full_path_goes_here>
 #export PROJECT_ROOT=<full_path_goes_here>
 #export CHALLENGE_REPO_ROOT=<full_path_goes_here>
-ctfcli init --config=<full_path_goes_here>
+python3 ./ctfcli init --config=<full_path_goes_here>
 
 ```
 

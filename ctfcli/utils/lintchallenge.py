@@ -2,8 +2,8 @@ import subprocess
 import yaml
 import subprocess
 from pathlib import Path
-from ctfcli.utils.utils import errorlogger,redprint,DEBUG
-from ctfcli.utils.utils import debugblue,debuggreen,debugred,debugyellow
+from utils.utils import errorlogger,redprint,DEBUG
+from utils.utils import debugblue,debuggreen,debugred,debugyellow
 class Linter():
     """
 

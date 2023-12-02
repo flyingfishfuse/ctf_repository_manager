@@ -1,6 +1,6 @@
-from ctfcli.ClassConstructor import Constructor
-from ctfcli.utils.utils import errorlogger,yellowboldprint,greenprint
-from ctfcli.core.repository import Repository
+from ClassConstructor import Constructor
+from utils.utils import errorlogger,yellowboldprint,greenprint
+from core.repository import Repository
 ###############################################################################
 #  MASTERLIST
 ###############################################################################
@@ -19,7 +19,7 @@ class Masterlist():
         self.challengetag = "!Challenge:"
         #super().__init__()
 
-    def _loadmasterlist(self,masterlistlocation) -> Repository:#, tag):
+    def _loadmasterlist(self,masterlistlocation) -> Repository | None:#, tag):
         """
         Loads the masterlist.yaml into Masterlist.data
 
@@ -32,8 +32,9 @@ class Masterlist():
             return workcrew._loadyaml(tag,masterlistlocation)
         except Exception:
             errorlogger("[-] ERROR:File = Masterlist")
+            return None
 
-    def _writenewmasterlist(self, masterlistlocation, pythoncode,filemode="w"):
+    def _writenewmasterlist(self, masterlistlocation, pythoncode,filemode="w") -> bool:
         """
         Creates a New Masterlist.yaml file from an init command
         remember to assign data to the file with
@@ -56,6 +57,8 @@ class Masterlist():
                 yellowboldprint("[+] Attempting To Write Masterlist.yaml")
                 workcrew._writeyaml(self.location, pythoncode, Repository, filemode)
                 greenprint("[+] Masterlist.yaml written to disk!")
+                return True
         except Exception:
             errorlogger("[-] ERROR: Could not Write .yml file, check the logs!")
+            return False
 

@@ -1,10 +1,10 @@
-from ctfcli.utils.utils import errorlogger
+from utils.utils import errorlogger
 import git, re
 from pathlib import Path
 
-from ctfcli.utils.utils import getsubdirs,redprint,DEBUG
-from ctfcli.utils.utils import yellowboldprint,debuggreen,logger
-from ctfcli.utils.utils import debugblue,debuggreen,debugred,debugyellow    
+from utils.utils import getsubdirs,redprint,DEBUG
+from utils.utils import yellowboldprint,debuggreen,logger
+from utils.utils import debugblue,debuggreen,debugred,debugyellow    
 
 #https://www.devdungeon.com/content/working-git-repositories-python
 class SandboxyGitRepository():

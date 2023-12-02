@@ -2,7 +2,7 @@
 # one is procedural, the other is monolithic
 # choose which to use , suiting your specific situation
 from requests import Session
-from ctfcli.utils.utils import errorlogger, errorlog
+from utils.utils import errorlogger, errorlog
 class APICore(Session):
     def __cls__(cls,
         loginurl = "http://127.0.0.1:8000/login",

@@ -1,12 +1,12 @@
 from logging import debug, exception
 import requests
 from pathlib import Path
-from ctfcli.utils.config import Config
-from ctfcli.utils.utils import errorlog, greenprint, errorlogger,yellowboldprint
-from ctfcli.core.apitemplates import hintstemplate,topictemplate, flagstemplate
-from ctfcli.core.apitemplates import comparetotemplate
-from ctfcli.utils.utils import redprint,DEBUG
-from ctfcli.utils.utils import debugblue,debuggreen,debugred,debugyellow
+from utils.config import Config
+from utils.utils import errorlog, greenprint, errorlogger,yellowboldprint
+from core.apitemplates import hintstemplate,topictemplate, flagstemplate
+from core.apitemplates import comparetotemplate
+from utils.utils import redprint,DEBUG
+from utils.utils import debugblue,debuggreen,debugred,debugyellow
 
 
 class APIHandler(requests.Session):

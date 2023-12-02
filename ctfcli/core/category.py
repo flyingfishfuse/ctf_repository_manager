@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from ctfcli.core.challenge import Challenge
-from ctfcli.utils.utils import errorlogger,redprint,yellowboldprint,greenprint
-from ctfcli.utils.utils import getsubdirs
+from core.challenge import Challenge
+from utils.utils import errorlogger,redprint,yellowboldprint,greenprint
+from utils.utils import getsubdirs
 
 ###############################################################################
 #  CTFd CATEGORY: representation of folder in repository

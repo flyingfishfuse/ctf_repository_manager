@@ -1,25 +1,25 @@
 import os
 from pathlib import Path
-from ctfcli.core.yamlstuff import Yaml
-from ctfcli.core.category import Category
-from ctfcli.core.challenge import Challenge
+from core.yamlstuff import Yaml
+from core.category import Category
+from core.challenge import Challenge
 ################################
 
 ### ___FUTURE___###
-#from ctfcli.core.deployment import Deployment
+#from core.deployment import Deployment
 ### ___FUTURE___###
 
 ################################
-from ctfcli.core.repository import Repository
-from ctfcli.core.masterlist import Masterlist
-from ctfcli.core.apisession import APIHandler
-from ctfcli.utils.lintchallenge import Linter
-from ctfcli.utils.utils import _processfoldertotarfile
-from ctfcli.utils.utils import getsubdirs,redprint,DEBUG
-from ctfcli.utils.utils import errorlogger,yellowboldprint,debuggreen,logger
-from ctfcli.utils.utils import debugblue,debuggreen,debugred,debugyellow
+from core.repository import Repository
+from core.masterlist import Masterlist
+from core.apisession import APIHandler
+from utils.lintchallenge import Linter
+from utils.utils import _processfoldertotarfile
+from utils.utils import getsubdirs,redprint,DEBUG
+from utils.utils import errorlogger,yellowboldprint,debuggreen,logger
+from utils.utils import debugblue,debuggreen,debugred,debugyellow
 
-from ctfcli.utils.utils import validationdict
+from utils.utils import validationdict
 ###############################################################################
 #
 ###############################################################################

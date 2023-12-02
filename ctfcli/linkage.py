@@ -1,12 +1,12 @@
 import os,sys
 from pathlib import Path
-from ctfcli.core.masterlist import Masterlist
-from ctfcli.core.repository import Repository
-from ctfcli.core.ctfdrepo import SandboxyCTFdRepository
-from ctfcli.core.apisession import APIHandler
-from ctfcli.core.gitrepo import SandboxyGitRepository
-from ctfcli.utils.utils import redprint,greenprint, errorlogger
-from ctfcli.utils.config import Config
+from core.masterlist import Masterlist
+from core.repository import Repository
+from core.ctfdrepo import SandboxyCTFdRepository
+from core.apisession import APIHandler
+from core.gitrepo import SandboxyGitRepository
+from utils.utils import redprint,greenprint, errorlogger
+from utils.config import Config
 #import configparser
 class CtfdLinkageBase():
     '''
@@ -16,6 +16,8 @@ class CtfdLinkageBase():
         #cls.__name__ = "Repo"
         #cls.__qualname__= 'Repo'
         #cls.tag = '!Repo:'
+        #cls.repo:Repository= None
+        #cls.config:Config  = None
         return super().__new__(cls)
         #return super(cls).__new__(cls, *args, **kwargs)
 
@@ -39,7 +41,8 @@ class CtfdLinkageBase():
             if os.path.exists(self.masterlistlocation):
                 repository = Masterlist()
                 repository = repository._loadmasterlist(self.masterlistlocation)
-                setattr(self,"repo", repository)
+                #setattr(self,"repo", repository)
+                self.repo = repository
                 return True
             else:
                 raise Exception
@@ -51,7 +54,8 @@ class CtfdLinkageBase():
         """
         Sets Config to self
         """
-        setattr(self,'config',configparser)
+        self.config = configparser
+        #setattr(self,'config',configparser)
 
     def _updatemasterlist(self):
         """
@@ -78,16 +82,24 @@ class SandBoxyCTFdLinkage(CtfdLinkageBase):
     """
     CTFCLI
 
-    >>> host@server$> python ./ctfcli/ ctfdrepo
+    >>> host@server$> python ./ctfcli/ repo
 
     Used to upload challenges from the data directory in project root
     And manage the ctfd instance
 
+    >>> ctfcli repo masterlistlocation
+    
+    >>> ctfcli repofolder 
+
+    >>>
+    
+    >>>
+
     """
-    def __init__(self,**important_items):
-        self.repo = Repository
-        self.repofolder:Path = important_items['repository']
-        self.masterlistlocation = important_items['masterlist']
+    def __init__(self,repository:Path,masterlist:Path):
+        #self.repo = Repository
+        self.repofolder:Path = repository
+        self.masterlistlocation = masterlist
         self._ctfdops = SandboxyCTFdRepository(self.repofolder, self.masterlistlocation)
 
     def init(self):
@@ -115,8 +127,8 @@ class SandBoxyCTFdLinkage(CtfdLinkageBase):
             repositoryobject = masterlist._loadmasterlist(self.masterlistlocation)
             #assigns repository to self for use in 
             # case the user started in interactive mode
-            #self.repo = repositoryobject
-            setattr(self,"repo",repositoryobject)
+            self.repo = repositoryobject
+            #setattr(self,"repo",repositoryobject)
             # if the user has not, the program will simply exit as it 
             # has reached the end of the logic flow
         except Exception:

@@ -1,7 +1,7 @@
-from ctfcli.core.apisession import APIHandler
-from ctfcli.utils.utils import errorlogger,greenprint
-from ctfcli.core.category import Category
-from ctfcli.core.challenge import Challenge
+from core.apisession import APIHandler
+from utils.utils import errorlogger,greenprint
+from core.category import Category
+from core.challenge import Challenge
 
 ###############################################################################
 #  CTF Repository
@@ -40,7 +40,7 @@ class Repository(Repo):
         self.__dict__.update(entries)
         
 
-    def _syncchallenge(self, challenge:Challenge,CTFD_URL,CTFD_TOKEN):
+    def _syncchallenge(self, challenge:Challenge,CTFD_URL:str,CTFD_TOKEN:str):
         """
         currently not being called
         keep it around please

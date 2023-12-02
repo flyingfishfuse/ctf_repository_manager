@@ -7,13 +7,13 @@ from pathlib import Path
 # old, when used as sub module for deployment
 #from __main__ import PROJECT_ROOT
 
-from ctfcli.utils.utils import DEBUG,get_directory,check_file_exist
-from ctfcli.utils.utils import errorlogger, yellowboldprint,greenprint,redprint
-from ctfcli.utils.utils import debugblue,debuggreen,debugred,debugyellow
+from utils.utils import DEBUG,get_directory,check_file_exist
+from utils.utils import errorlogger, yellowboldprint,greenprint,redprint
+from utils.utils import debugblue,debuggreen,debugred,debugyellow
 
-from ctfcli.utils.config import Config
-from ctfcli.linkage import SandBoxyCTFdLinkage
-from ctfcli.core.gitrepo import SandboxyGitRepository
+from utils.config import Config
+from linkage import SandBoxyCTFdLinkage
+from core.gitrepo import SandboxyGitRepository
 
 ################################################################################
 ##############                   Master Values                 #################
@@ -50,6 +50,7 @@ class Setpaths():
         #self.MASTERLIST_PATH = Path
         #self.CONFIG_PATH = Path
         self.config= config_object
+        debuggreen("Setting paths for expected items or custom locations")
 
     def project_root(self, path_to_folder:Path) -> Path:
         '''assign specified folder as project root
@@ -59,12 +60,26 @@ class Setpaths():
         debuggreen("getting path to expected project directory, this should be the parent \
                     of the tool folder although you can assign your own \n  \
                     This can be changed using 'set_root project_root <full path to folder>'")
-        # linter throwing an error on this one?
-        self.PROJECT_ROOT = Path(os.path.realpath(path_to_folder))
-        debugyellow(self.PROJECT_ROOT)
-        self.config.set(section="Default",option='projectroot',value=str(self.PROJECT_ROOT))
-        self._writeconfig()
-        return self.PROJECT_ROOT
+        
+        # check if value provided to project_root location
+        # relative to tool location, not custom location
+        if path_to_folder in [None, ""]:
+            self.PROJECT_ROOT = Path(os.path.realpath(path_to_folder))
+            debugyellow("project_root is %s" % self.PROJECT_ROOT)
+            self.config.set(section="Default",option='projectroot',value=str(self.PROJECT_ROOT))
+            self._writeconfig()
+            return self.PROJECT_ROOT
+        if path_to_folder not in [None, ""] and type(path_to_folder) is str:
+            try: 
+                Path(path_to_folder).resolve()
+            except Exception:
+                errorlogger("Could not resolve PATH: %s" % path_to_folder)
+                redprint("String provided to Setpaths.project_root is not a path, Exiting program")
+                raise ValueError
+        else:
+            errorlogger("Setpaths.project_root experienced a VERY strange error, the value \n \
+                        provided is not a string or None or empty string, Exiting program!")
+            raise Exception
 
     def set_masterlist(self, masterlist_location:Path) -> Path:
         '''assign specified master list to configuration'''
@@ -126,21 +141,27 @@ class Ctfcli():
         for SINGLE operations, with NO authentication persistance:
         Replace <URL> with your CTFd website url
         Replace <TOKEN> with your CTFd website token
-        >>> host@server$> python ./ctfcli/ ctfcli --ctfdurl <URL> --ctfdtoken <TOKEN>
+        >>> host@server$> python ./ctfcli/ repo --ctfdurl <URL> --ctfdtoken <TOKEN>
 
         for multiple operations, WITH authentication persistance:
         This configuration will be able to obtain tokens via CLI
-        >>> host@server$> python ./ctfcli/ ctfcli --ctfdurl <URL> --adminusername moop --adminpassword password
+        >>> host@server$> python ./ctfcli/ repo --ctfdurl <URL> --adminusername moop --adminpassword password
 
-        To sync repository contents to CTFd Server, 
-        >>> host@server$> python ./ctfcli/ ctfcli syncrepository 
+        ================================================================
+        Syncs the masterlist.yaml with server, This "uploads" the challenges.
+        Use this AFTER init
+        UNLESS you are using the default set, then simply use this
+
+        To sync repository contents to CTFd Server
+        >>> host@server$> python ./ctfcli/ repo syncrepository ---ctfdurl=<URL>
 
         Not supplying a password/username, or token, will attempt to read auth
         information already in the config./cfg file
 
         You can obtain a auth token from the "settings" page in the "admin panel"
         This will initialize the repository, from there, you can either:
-        
+        ================================================================
+
         Pull a remote repository
         you have to create a new masterlist after this
         That will be covered further down.
@@ -160,7 +181,7 @@ class Ctfcli():
         / NOT IMPLEMENTED YET /
         IF YOU ARE MOVING YOUR INSTALLATION AFTER USING THE PACKER/UNPACKER
         IN START.SH, PERFORM THE FOLLOWING ACTIONS/COMMANDS
-        >>> host@server$>python ./ctfcli/ ctfcli check_install
+        >>> host@server$>python ./ctfcli/ check_install
         / NOT IMPLEMENTED YET /
 
         control flow:
@@ -190,18 +211,20 @@ class Ctfcli():
             # in parent folder of tool folder, otherwise it looks for
             # the config in the specified location
             try:
+                debuggreen("init - config checks")
                 self._config_set_check(config_location)
-                #self.config = Config(Path(self._toolfolder, "config.cfg"))
-                self.config = Config(self.CONFIG_LOCATION)
             except Exception:
                 errorlogger("Could not set config location: check if file exists and permissions")
         except Exception:
             errorlogger("Could not find tool folder and set config, check permissions and file existance")
 
         # step 2: set paths
+
         important_paths          = Setpaths(self.config.config)
-        self.CONFIG_LOCATION     = important_paths._set_config_location(Path(important_paths.PROJECT_ROOT, "config.cfg"))
         self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
+        self.CONFIG_LOCATION     = important_paths._set_config_location(Path(self.PROJECT_ROOT , "config.cfg"))
+        #self.CONFIG_LOCATION     = important_paths._set_config_location(Path(important_paths.project_root(TOOL_LOCATION), "config.cfg"))
+        #self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
         self.MASTERLIST_LOCATION = important_paths.set_masterlist(Path(important_paths.PROJECT_ROOT, "masterlist.yaml"))
         self.CHALLENGEREPOROOT   = important_paths.set_challenge_repository_dir(Path(important_paths.PROJECT_ROOT,'/data/CTFd/challenges'))
 
@@ -209,7 +232,11 @@ class Ctfcli():
 
         # currently, only the challenge folder needs validation
         self._validate_locations()
-
+#File "/home/moop/Desktop/work/ctf_repository_manager/./ctfcli/__main__.py", line 203, in __init__
+#
+#    self.CONFIG_LOCATION     = important_paths._set_config_location(Path(important_paths.PROJECT_ROOT, "config.cfg"))
+#
+#AttributeError: 'Setpaths' object has no attribute 'PROJECT_ROOT'
     def init(self):
         ''' '''
         # create empty Repository() Object
@@ -220,21 +247,35 @@ class Ctfcli():
         # load config file
         self.linkage._initconfig(self.config)
         # bring repository class to higher level scope
-        self.repository = self.linkage.repo 
+        self.repo = self.linkage.repo 
         # challenge templates, change this to use your own with a randomizer
         #self.TEMPLATESDIR = Path(self.toolfolder , "ctfcli", "templates")
 
     def _config_set_check(self,config_location:str):
-        '''Checks if user gave custom config location and sets new values accordingly
-        The results of this are stored in the Masterlist.yaml'''
+        '''Checks if user gave custom config location and sets new values accordingly'''
         #if config param not used on CLI
         if config_location == "./config.cfg":
             greenprint("Using default configuration file")
             self.CONFIG_LOCATION = Path(TOOL_LOCATION).parent / config_location
-        
-        else:
+            debugyellow(f"config location :{self.CONFIG_LOCATION}")
+            self.config = Config(self.CONFIG_LOCATION)
+            return self.config
+        # if config param was given on cli
+        if config_location != None and config_location != "./config.cfg":
             # get full path of location given if relative path supplied as argument
-            self.CONFIG_LOCATION = Path(config_location).resolve()
+            try:
+                self.CONFIG_LOCATION = Path(config_location).resolve()
+                debugyellow(f"config location :{self.CONFIG_LOCATION}")
+                self.config = Config(self.CONFIG_LOCATION)
+                return self.config
+            except Exception:
+                errorlogger("Path given for config file is not a valid system path, please check \n \
+ if the location exists. Exiting program!")
+                sys.exit()
+        else:
+            # it was neither a None or string, 
+            errorlogger("Something is really wierd with the Config file location. This error should not happen.")
+            raise ValueError
     
     def _check_masterlist(self) -> bool:
         '''Checks if master list is available'''
@@ -323,6 +364,7 @@ class Ctfcli():
     #        debugyellow(f"SETTING {each} as {os.getenv(each)}")
     #        setattr(self,each, Path(os.getenv(each)))
  
+top_level_commands = {}
 def main():
     '''wat'''
     #fire.Fire(Ctfcli)

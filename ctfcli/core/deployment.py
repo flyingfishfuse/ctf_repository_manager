@@ -1,5 +1,5 @@
-from ctfcli.utils.utils import infolog,errorlogger,greenprint,redprint,yellowboldprint
-from ctfcli.core.yamlstuff import Yaml,KubernetesYaml
+from utils.utils import infolog,errorlogger,greenprint,redprint,yellowboldprint
+from core.yamlstuff import Yaml,KubernetesYaml
 
 import os
 from pathlib import Path

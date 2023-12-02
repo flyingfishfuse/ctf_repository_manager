@@ -1,6 +1,6 @@
 import yaml, os
 from pathlib import Path
-from ctfcli.utils.utils import errorlogger,greenprint
+from utils.utils import errorlogger,greenprint
 from yaml import safe_load,safe_dump
 
 class Yaml(): #filetype

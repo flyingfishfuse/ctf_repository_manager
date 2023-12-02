@@ -33,20 +33,20 @@ launchercwd         = pathlib.Path().absolute()
 redprint          = lambda text: print(Fore.RED + ' ' +  text + ' ' + Style.RESET_ALL) if (COLORMEQUALIFIED == True) else print(text)
 blueprint         = lambda text: print(Fore.BLUE + ' ' +  text + ' ' + Style.RESET_ALL) if (COLORMEQUALIFIED == True) else print(text)
 greenprint        = lambda text: print(Fore.GREEN + ' ' +  text + ' ' + Style.RESET_ALL) if (COLORMEQUALIFIED == True) else print(text)
-yellowboldprint = lambda text: print(Fore.YELLOW + Style.BRIGHT + ' {} '.format(text) + Style.RESET_ALL) if (COLORMEQUALIFIED == True) else print(text)
+yellowboldprint   = lambda text: print(Fore.YELLOW + Style.BRIGHT + ' {} '.format(text) + Style.RESET_ALL) if (COLORMEQUALIFIED == True) else print(text)
 makeyellow        = lambda text: Fore.YELLOW + ' ' +  text + ' ' + Style.RESET_ALL if (COLORMEQUALIFIED == True) else None
 makered           = lambda text: Fore.RED + ' ' +  text + ' ' + Style.RESET_ALL if (COLORMEQUALIFIED == True) else None
 makegreen         = lambda text: Fore.GREEN + ' ' +  text + ' ' + Style.RESET_ALL if (COLORMEQUALIFIED == True) else None
 makeblue          = lambda text: Fore.BLUE + ' ' +  text + ' ' + Style.RESET_ALL if (COLORMEQUALIFIED == True) else None
-debugred = lambda text: print(Fore.RED + '[DEBUG] ' +  text + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
-debugblue = lambda text: print(Fore.BLUE + '[DEBUG] ' +  text + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
-debuggreen = lambda text: print(Fore.GREEN + '[DEBUG] ' +  text + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
-debugyellow = lambda text: print(Fore.YELLOW + '[DEBUG] ' +  text + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
-debuglog     = lambda message: logger.debug(message) 
-infolog      = lambda message: logger.info(message)   
-warninglog   = lambda message: logger.warning(message) 
-errorlog     = lambda message: logger.error(message) 
-criticallog  = lambda message: logger.critical(message)
+debugred          = lambda text: print(Fore.RED + '[DEBUG] ' +  str(text) + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
+debugblue         = lambda text: print(Fore.BLUE + '[DEBUG] ' +  str(text) + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
+debuggreen        = lambda text: print(Fore.GREEN + '[DEBUG] ' +  str(text) + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
+debugyellow       = lambda text: print(Fore.YELLOW + '[DEBUG] ' +  str(text) + ' ' + Style.RESET_ALL) if (DEBUG == True) else None
+debuglog          = lambda message: logger.debug(message) 
+infolog           = lambda message: logger.info(message)   
+warninglog        = lambda message: logger.warning(message) 
+errorlog          = lambda message: logger.error(message) 
+criticallog       = lambda message: logger.critical(message)
 
 
 
