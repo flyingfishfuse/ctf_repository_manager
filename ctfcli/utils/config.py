@@ -69,8 +69,7 @@ host@server$> python ./ctfcli/ config <command>
             debuggreen("starting config parser")
             self.config = configparser.ConfigParser()
             self._readconfig(configpath)
-            debugyellow("config contents: \n")
-            debugyellow(self.show_config)
+            debugyellow(self.show_config())
         except Exception:
             errorlogger("unable to load Config file, check permissions on the file and it's location and contents")
 
@@ -99,7 +98,7 @@ host@server$> python ./ctfcli/ config <command>
         """
         #with open(self.cfgfilepath, 'w') as self.configfile:
             #config = open(self.cfgfilepath)
-        self.write(self.cfgfilepath)
+        self.config.write(self.cfgfilepath)
         #self.configfile.close()
 
     def _readauthconfig(self) -> dict:#, cfgfile:Path):
@@ -120,13 +119,34 @@ host@server$> python ./ctfcli/ config <command>
         except Exception:
             errorlogger("[-] Failed to set authentication information from config file:")
 
-    def show_config(self,configpath):
-        '''outputs contents of config file to STDOUT'''
-        printconfig = self.config.read(configpath)
-        for key in printconfig.sections():
+    def show_config(self,configpath:str=None):
+        '''outputs contents of specified config file to STDOUT
+        If no config file path is given it will show the currently 
+        loaded config file contents
+
+    Args:
+        configpath (str): path to config file
+                                
+        '''
+        #printconfig = self.config.read(configpath)
+
+        # they are using an internal config    
+        if configpath == None:
+            debugyellow("Showing internal config:")
+            config_to_show = self.config
+        elif isinstance(configpath, str):
+            debugyellow(f"Config file path given is {configpath}, Attempting to read file")
+            config_to_show = self.config.read(configpath)
+        else:
+            errorlogger(f"Config file Path given to Config.show_config() is not a string: {configpath}")
+            raise ValueError(configpath)
+        
+        # show section, then key = value pairs on newlines
+        for key in config_to_show.sections():
             print("Section: " + str(key))
-            for item in dict(printconfig.items(key)):
-                print(item + " = " + printconfig.get(section = key, option=item))
+            for item in dict(self.config.items(key)):
+                print(str(item) + " = " + str(self.config.get(section = key, option=item)))
+
 
     def _setauthconfig(self, authdict):#, cfgfile:Path):
         """

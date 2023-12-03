@@ -1,0 +1,2 @@
+DEBUG:git.cmd:Popen(['git', 'version'], cwd=/home/moop/Desktop/work/ctf_repository_manager, stdin=None, shell=False, universal_newlines=False)
+DEBUG:git.cmd:Popen(['git', 'version'], cwd=/home/moop/Desktop/work/ctf_repository_manager, stdin=None, shell=False, universal_newlines=False)

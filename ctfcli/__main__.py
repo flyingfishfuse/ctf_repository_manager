@@ -57,19 +57,20 @@ class Setpaths():
         This folder should have a folder named "challenges" that fits the spec
         outlined in the README.MD
         '''
-        debuggreen("getting path to expected project directory, this should be the parent \
-                    of the tool folder although you can assign your own \n  \
-                    This can be changed using 'set_root project_root <full path to folder>'")
+        debuggreen("getting path to expected project directory, this should be the parent \n\
+                           of the tool folder although you can assign your own \n  \
+                           This can be changed using 'set_root project_root <full path to folder>'")
         
         # check if value provided to project_root location
         # relative to tool location, not custom location
+        # if normal usage, value is provided
         if path_to_folder in [None, ""]:
             self.PROJECT_ROOT = Path(os.path.realpath(path_to_folder))
             debugyellow("project_root is %s" % self.PROJECT_ROOT)
             self.config.set(section="Default",option='projectroot',value=str(self.PROJECT_ROOT))
             self._writeconfig()
             return self.PROJECT_ROOT
-        if path_to_folder not in [None, ""] and type(path_to_folder) is str:
+        if path_to_folder not in [None, ""] and isinstance(path_to_folder, (Path | str)):
             try: 
                 Path(path_to_folder).resolve()
             except Exception:
@@ -221,7 +222,10 @@ class Ctfcli():
         # step 2: set paths
 
         important_paths          = Setpaths(self.config.config)
-        self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
+        
+        debugyellow(f"self._toolfolder is set to {self._toolfolder}")
+        self.PROJECT_ROOT        = important_paths.project_root(Path(self._toolfolder))
+        debugyellow(f"self.PROJECT_ROOT is set to {self.PROJECT_ROOT}")
         self.CONFIG_LOCATION     = important_paths._set_config_location(Path(self.PROJECT_ROOT , "config.cfg"))
         #self.CONFIG_LOCATION     = important_paths._set_config_location(Path(important_paths.project_root(TOOL_LOCATION), "config.cfg"))
         #self.PROJECT_ROOT        = important_paths.project_root(Path(TOOL_LOCATION).parent)
@@ -256,7 +260,7 @@ class Ctfcli():
         #if config param not used on CLI
         if config_location == "./config.cfg":
             greenprint("Using default configuration file")
-            self.CONFIG_LOCATION = Path(TOOL_LOCATION).parent / config_location
+            self.CONFIG_LOCATION = Path(TOOL_LOCATION.parent , config_location)
             debugyellow(f"config location :{self.CONFIG_LOCATION}")
             self.config = Config(self.CONFIG_LOCATION)
             return self.config

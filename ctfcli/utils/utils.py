@@ -22,12 +22,22 @@ except ImportError as derp:
 ################################################################################
 ##############               LOGGING AND ERRORS                #################
 ################################################################################
+
+logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger('foo').debug('bah')
+logging.getLogger().setLevel(logging.INFO)
+logging.getLogger('foo').debug('bah')
+
 log_file            = 'logfile'
-logging.basicConfig(filename=log_file, 
+logging.basicConfig(filename=log_file, filemode='w')
                     #format='%(asctime)s %(message)s', 
-                    filemode='w'
-                    )
-logger              = logging.getLogger()
+if DEBUG == True:
+    logger = logging.getLogger().setLevel(logging.DEBUG)
+else:
+    logger = logging.getLogger().setLevel(logging.INFO)
+
+#logger.setLevel(logging.INFO)
+
 launchercwd         = pathlib.Path().absolute()
 
 redprint          = lambda text: print(Fore.RED + ' ' +  text + ' ' + Style.RESET_ALL) if (COLORMEQUALIFIED == True) else print(text)
